@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Visitas</title>
+</head>
+<body>
+
+<h1>Registrar Visitas</h1>
+
+<label>Visitantes:</label>
+<select id="visitante"></select>
+
+<br><br>
+
+<label>Vecino:</label>
+<select id="vecino"></select>
+
+<br><br>
+
+<label>Placa:</label>
+<input type="text" id="placa" placeholder="P123ABC">
+
+<br><br>
+
+<button onclick="registrarVisita()">Registrar</button>
+
+<p id="mensaje"></p>
+
+<hr>
+
+<h2>Captura de Foto</h2>
+
+<video id="video" width="320" height="240" autoplay></video>
+<br><br>
+<button onclick="iniciarCamara()">Encender cámara</button>
+<button onclick="tomarFoto()">Tomar foto</button>
+
+<br><br>
+<canvas id="canvas" width="320" height="240"></canvas>
+
+<hr>
+
+<h2>Historial de Visitas</h2>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Visitante</th>
+            <th>Vecino</th>
+            <th>Placa</th>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Observaciones</th>
+            <th>Acción</th>
+            <th>Foto</th>
+        </tr>
+    </thead>
+    <tbody id="tablaVisitas"></tbody>
+</table>
+
+<script>
+const API = "http://127.0.0.1:8000";
+
+let mapaVisitantes = {};
+let mapaVecinos = {};
+let mapaViviendasVecino = {};
+let imagenBase64 = "";
+
+// Cargar datos
+async function cargarVisitantes() {
+    let res = await fetch(API + "/visitantes");
+    let data = await res.json();
+
+    let select = document.getElementById("visitante");
+    select.innerHTML = "";
+
+    data.forEach(v => {
+        mapaVisitantes[v.id_visitante] = v.nombres + " " + v.apellidos;
+
+        let option = document.createElement("option");
+        option.value = v.id_visitante;
+        option.textContent = v.nombres + " " + v.apellidos;
+        select.appendChild(option);
+    });
+}
+
+async function cargarVecinos() {
+    let res = await fetch(API + "/vecinos");
+    let data = await res.json();
+
+    let select = document.getElementById("vecino");
+    select.innerHTML = "";
+
+    data.forEach(v => {
+        mapaVecinos[v.id_vecino] = v.nombres + " " + v.apellidos;
+        mapaViviendasVecino[v.id_vecino] = v.id_vivienda;
+
+        let option = document.createElement("option");
+        option.value = v.id_vecino;
+        option.textContent = v.nombres + " " + v.apellidos;
+        select.appendChild(option);
+    });
+}
+
+async function cargarVisitas() {
+    let res = await fetch(API + "/visitas");
+    let data = await res.json();
+
+    let tabla = document.getElementById("tablaVisitas");
+    tabla.innerHTML = "";
+
+    data.forEach(v => {
+        let fila = `
+        <tr>
+            <td>${v.id_visita}</td>
+            <td>${mapaVisitantes[v.id_visitante]}</td>
+            <td>${mapaVecinos[v.id_vecino]}</td>
+            <td>${v.placa || ''}</td>
+            <td>${v.fecha_ingreso}</td>
+            <td>${v.hora_ingreso}</td>
+            <td>${v.observaciones}</td>
+            <td>
+                ${v.estado_visita === 'activa'
+                    ? `<button onclick="registrarSalida(${v.id_visita})">Salida</button>`
+                    : 'Finalizada'}
+            </td>
+            <td>
+                ${v.foto
+                    ? `<img src="${API}/${v.foto}" width="100"/>`
+                    : 'Sin foto'}
+            </td>
+        </tr>
+        `;
+        tabla.innerHTML += fila;
+    });
+}
+
+async function registrarVisita() {
+    let visitante = document.getElementById("visitante").value;
+    let vecino = document.getElementById("vecino").value;
+    let vivienda = mapaViviendasVecino[vecino];
+    let placa = document.getElementById("placa").value;
+
+    let res = await fetch(API + "/visitas", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            id_visitante: parseInt(visitante),
+            id_vecino: parseInt(vecino),
+            id_vivienda: parseInt(vivienda),
+            id_usuario_agente: 1,
+            tipo_ingreso: "normal",
+            observaciones: "Registrado desde web",
+            foto: imagenBase64,
+            placa: placa
+        })
+    });
+
+    let data = await res.json();
+    document.getElementById("mensaje").textContent = data.mensaje;
+
+    cargarVisitas();
+}
+
+async function registrarSalida(id) {
+    await fetch(API + "/visitas/" + id + "/salida", { method: "PUT" });
+    cargarVisitas();
+}
+
+async function iniciarCamara() {
+    let stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    document.getElementById("video").srcObject = stream;
+}
+
+function tomarFoto() {
+    let video = document.getElementById("video");
+    let canvas = document.getElementById("canvas");
+    let ctx = canvas.getContext("2d");
+
+    ctx.drawImage(video, 0, 0, 320, 240);
+    imagenBase64 = canvas.toDataURL("image/png");
+}
+
+async function iniciar() {
+    await cargarVisitantes();
+    await cargarVecinos();
+    await cargarVisitas();
+}
+
+iniciar();
+</script>
+
+</body>
+</html>
