@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Visitas</title>
+    <!-- Edicion Mario -->
+    <style>
+
+        /*Reset */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /*Definicion de las animaciones antes de usarlas*/
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.35; }
+        }
+        @keyframes rowIn {
+            from { opacity: 0; transform: translateX(18px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes ringPing {
+            0%   { transform: scale(1);   opacity: 0.8; }
+            100% { transform: scale(2.4); opacity: 0; }
+        }
+        @keyframes barGrow {
+            from { width: 0; }
+            to   { width: var(--w); }
+        }
+
+        /*Estilos generales de la pagina*/
+        body {
+            font-family: Arial, sans-serif;
+            background: #F8F7FF;
+            color: #2C2C2A;
+        }
+
+        /*Header con gradiente purpura*/
+        .header {
+            background: linear-gradient(135deg, #534AB7 0%, #7F77DD 60%, #AFA9EC 100%);
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeUp .5s ease both;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .shield {
+            width: 38px;
+            height: 38px;
+            background: rgba(255,255,255,.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,.3);
+        }
+        .shield svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+        .site-name {
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .site-sub {
+            color: rgba(255,255,255,.7);
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        /*Punto pulsante "en linea"*/
+        .live {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .live-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #C0DD97;
+            position: relative;
+            animation: pulse 1.8s infinite;
+        }
+        .live-ring {
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            border: 1.5px solid #C0DD97;
+            animation: ringPing 1.8s infinite;
+        }
+        .live-txt {
+            color: rgba(255,255,255,.8);
+            font-size: 12px;
+        }
+
+        /*Tarjetas de metricas*/
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            padding: 16px 24px;
+            animation: fadeUp .5s ease .1s both;
+        }
+        .metric {
+            background: white;
+            border-radius: 12px;
+            padding: 14px 16px;
+            border: .5px solid #DDD9F9;
+        }
+        .m-label {
+            font-size: 11px;
+            color: #7F77DD;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+        .m-val {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .mv-purple { color: #534AB7; }
+        .mv-green  { color: #3B6D11; }
+        .mv-amber  { color: #854F0B; }
+        .mv-red    { color: #A32D2D; }
+        .m-sub {
+            font-size: 11px;
+            color: #AFA9EC;
+            margin-top: 3px;
+        }
+
+        /*La variable --w define hasta donde crece la barra*/
+        .bar-seccion {
+            padding: 0 24px 16px;
+            animation: fadeUp .5s ease .2s both;
+        }
+        .bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #7F77DD;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .bar-track {
+            height: 7px;
+            background: #EEEDFE;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #534AB7, #AFA9EC);
+            animation: barGrow .9s cubic-bezier(.22,1,.36,1) both;
+        }
+        .bar-fill.amber {
+            background: linear-gradient(90deg, #BA7517, #FAC775);
+        }
+
+        /*Grid de dos columnas para formulario y camara*/
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 0 24px 12px;
+            animation: fadeUp .5s ease .3s both;
+        }
+
+        /*Clases de CSS para animacion y transiciones*/
+        /*Dentro de esto usamos los frames que ya definimos*/
+        .card {
+            background: white;
+            border: .5px solid #DDD9F9;
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+        }
+        .card-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: #7F77DD;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: 12px;
+        }
+
+        /*Campos del formulario*/
+        .field { margin-bottom: 10px; }
+        .field label {
+            font-size: 12px;
+            color: #534AB7;
+            display: block;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+        .field select,
+        .field input[type="text"] {
+            width: 100%;
+            height: 34px;
+            border: .5px solid #CCC9F4;
+            border-radius: 8px;
+            padding: 0 10px;
+            font-size: 13px;
+            background: white;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .field select:focus,
+        .field input[type="text"]:focus {
+            border-color: #534AB7;
+            box-shadow: 0 0 0 3px rgba(83,74,183,.15);
+        }
+
+        /*Debemos colocar la transicion en el elemento base*/
+        .btn-reg {
+            width: 100%;
+            height: 38px;
+            background: #534AB7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: transform .15s, background .2s;
+        }
+        .btn-reg:hover  { background: #7F77DD; transform: translateY(-1px); }
+        .btn-reg:active { transform: scale(.98); }
+
+        /*Caja de vista previa de la camara*/
+        .cam-box {
+            background: #F8F7FF;
+            border: .5px dashed #CCC9F4;
+            border-radius: 8px;
+            height: 110px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            transition: border-color .2s;
+        }
+        .cam-box:hover { border-color: #534AB7; }
+        .cam-box svg {
+            width: 28px;
+            height: 28px;
+            stroke: #AFA9EC;
+            fill: none;
+            stroke-width: 1.5;
+        }
+        .cam-box span { font-size: 12px; color: #AFA9EC; }
+
+        .btn-row { display: flex; gap: 8px; }
+        .btn-sm {
+            flex: 1;
+            height: 32px;
+            border: .5px solid #CCC9F4;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #534AB7;
+            background: transparent;
+            cursor: pointer;
+            transition: background .2s, border-color .2s;
+        }
+        .btn-sm:hover { background: #EEEDFE; border-color: #534AB7; }
+
+        /*Tarjeta del historial*/
+        .hist-card {
+            background: white;
+            border: .5px solid #DDD9F9;
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+            margin: 0 24px 24px;
+            animation: fadeUp .5s ease .45s both;
+        }
+        .hist-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .search-wrap { position: relative; width: 180px; }
+        .search-wrap input {
+            width: 100%;
+            height: 30px;
+            border: .5px solid #DDD9F9;
+            border-radius: 8px;
+            padding: 0 10px 0 28px;
+            font-size: 12px;
+            background: #F8F7FF;
+            outline: none;
+            transition: border-color .2s;
+        }
+        .search-wrap input:focus { border-color: #534AB7; }
+        .search-ico {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            stroke: #AFA9EC;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /*Tabla del historial*/
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        th {
+            font-size: 11px;
+            color: #7F77DD;
+            font-weight: bold;
+            text-align: left;
+            padding: 6px 8px;
+            border-bottom: .5px solid #EEEDFE;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        td {
+            font-size: 13px;
+            padding: 10px 8px;
+            border-bottom: .5px solid #F4F3FE;
+            transition: background .2s;
+        }
+        tr:hover td { background: #F8F7FF; }
+
+        /*Avatar con iniciales*/
+        .av {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            margin-right: 6px;
+            vertical-align: middle;
+            background: #EEEDFE;
+            color: #534AB7;
+        }
+
+        /*Badges de estado activa / finalizada*/
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .badge-on  { background: #EAF3DE; color: #27500A; }
+        .badge-off { background: #F4F3FE; color: #7F77DD; }
+        .bdot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+        .bdot-on  { background: #639922; animation: pulse 2s infinite; }
+        .bdot-off { background: #AFA9EC; }
+
+        /*Boton de salida*/
+        .btn-salida {
+            padding: 3px 10px;
+            background: transparent;
+            border: .5px solid #A32D2D;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #A32D2D;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .btn-salida:hover { background: #FCEBEB; }
+
+        .placa { font-family: monospace; font-size: 12px; }
+        .muted  { color: #AFA9EC; font-size: 12px; }
+
+        #mensaje {
+            font-size: 13px;
+            color: #3B6D11;
+            margin-top: 8px;
+        }
+
+        video, canvas {
+            display: block;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: .5px solid #DDD9F9;
+        }
+
+        /*Debemos colocar Toast oculto para que "show" lo muestre*/
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: linear-gradient(90deg, #534AB7, #7F77DD);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity .3s, transform .3s;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+
+    </style>
+</head>
+<body>
+
+    <!--Aqui usamos las clases que ya definimos dentro de style-->
+
+    <!-- Header con escudo y punto en linea -->
+    <div class="header">
+        <div class="header-left">
+            <div class="shield">
+                <svg viewBox="0 0 24 24"><path d="M12 2L4 5v6c0 5.5 3.5 10.7 8 12 4.5-1.3 8-6.5 8-12V5l-8-3z"/></svg>
+            </div>
+            <div>
+                <div class="site-name">Portería — Registro de Visitas</div>
+                <div class="site-sub" id="fecha-turno">Cargando turno...</div>
+            </div>
+        </div>
+        <div class="live">
+            <div class="live-dot"><div class="live-ring"></div></div>
+            <span class="live-txt">En línea</span>
+        </div>
+    </div>
+
+    <!-- Tarjetas de metricas -->
+    <div class="metrics">
+        <div class="metric">
+            <div class="m-label">Visitas activas</div>
+            <div class="m-val mv-purple" id="cnt-activas">0</div>
+            <div class="m-sub">ahora mismo</div>
+        </div>
+        <div class="metric">
+            <div class="m-label">Ingresos hoy</div>
+            <div class="m-val mv-green" id="cnt-ingresos">0</div>
+            <div class="m-sub">total del día</div>
+        </div>
+        <div class="metric">
+            <div class="m-label">Salidas hoy</div>
+            <div class="m-val mv-amber" id="cnt-salidas">0</div>
+            <div class="m-sub">total del día</div>
+        </div>
+        <div class="metric">
+            <div class="m-label">Sin foto</div>
+            <div class="m-val mv-red" id="cnt-sinfoto">0</div>
+            <div class="m-sub">pendientes</div>
+        </div>
+    </div>
+
+    <!-- Barras de progreso animadas -->
+    <!-- La variable --w define hasta donde crece la barra -->
+    <div class="bar-seccion">
+        <div class="bar-label"><span>Ocupación del turno</span><span id="pct-ocupacion">0%</span></div>
+        <div class="bar-track"><div class="bar-fill" id="bar-ocupacion" style="--w:0%"></div></div>
+        <div class="bar-label"><span>Visitas con vehículo</span><span id="pct-vehiculos" style="color:#BA7517">0%</span></div>
+        <div class="bar-track"><div class="bar-fill amber" id="bar-vehiculos" style="--w:0%"></div></div>
+    </div>
+
+    <!-- Grid: formulario y camara lado a lado -->
+    <div class="grid2">
+
+        <!-- Card 1: formulario de registro -->
+        <div class="card">
+            <div class="card-title">Nueva visita</div>
+
+            <div class="field">
+                <label>Visitante:</label>
+                <select id="visitante"></select>
+            </div>
+            <div class="field">
+                <label>Vecino:</label>
+                <select id="vecino"></select>
+            </div>
+            <div class="field">
+                <label>Placa del vehículo (opcional):</label>
+                <input type="text" id="placa" placeholder="P123ABC">
+            </div>
+
+            <button class="btn-reg" onclick="registrarVisita()">+ Registrar ingreso</button>
+            <p id="mensaje"></p>
+        </div>
+
+        <!-- Card 2: camara -->
+        <div class="card">
+            <div class="card-title">Captura fotográfica</div>
+            <div class="cam-box" id="cam-box">
+                <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <span id="cam-txt">Cámara inactiva</span>
+            </div>
+            <video id="video" width="100%" height="160" autoplay style="display:none"></video>
+            <div class="btn-row">
+                <button class="btn-sm" onclick="iniciarCamara()">Encender cámara</button>
+                <button class="btn-sm" onclick="tomarFoto()">Tomar foto</button>
+            </div>
+            <canvas id="canvas" width="320" height="240" style="display:none"></canvas>
+        </div>
+
+    </div>
+
+    <!-- Card 3: historial -->
+    <div class="hist-card">
+        <div class="hist-head">
+            <div class="card-title" style="margin-bottom:0">Historial de visitas</div>
+            <div class="search-wrap">
+                <svg class="search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" id="buscador" placeholder="Buscar visitante..." oninput="filtrarTabla()"/>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:5%">ID</th>
+                    <th style="width:20%">Visitante</th>
+                    <th style="width:20%">Vecino</th>
+                    <th style="width:10%">Placa</th>
+                    <th style="width:10%">Fecha</th>
+                    <th style="width:8%">Hora</th>
+                    <th style="width:12%">Observaciones</th>
+                    <th style="width:8%">Estado</th>
+                    <th style="width:7%">Acción</th>
+                </tr>
+            </thead>
+            <tbody id="tablaVisitas"></tbody>
+        </table>
+    </div>
+
+    <!--El toast existe en el HTML pero empieza invisible hasta que JS lo muestre-->
+    <div id="toast" class="toast">Visita registrada correctamente</div>
+
+<script>
+    const API = "http://127.0.0.1:8000";
+
+    let mapaVisitantes = {};
+    let mapaVecinos = {};
+    let mapaViviendasVecino = {};
+    let imagenBase64 = "";
+    let todasLasVisitas = [];
+
+    // Mostrar fecha y turno en el header
+    function mostrarFecha() {
+        const ahora = new Date();
+        const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const fecha = ahora.toLocaleDateString('es-ES', opciones);
+        document.getElementById('fecha-turno').textContent = fecha;
+    }
+
+    // Actualizar las metricas con animacion
+    function actualizarMetricas(visitas) {
+        const activas   = visitas.filter(v => v.estado_visita === 'activa').length;
+        const total     = visitas.length;
+        const salidas   = visitas.filter(v => v.estado_visita !== 'activa').length;
+        const sinFoto   = visitas.filter(v => !v.foto).length;
+        const conPlaca  = visitas.filter(v => v.placa).length;
+
+        animarNumero('cnt-activas',  activas);
+        animarNumero('cnt-ingresos', total);
+        animarNumero('cnt-salidas',  salidas);
+        animarNumero('cnt-sinfoto',  sinFoto);
+
+        // Barras de progreso
+        const pctOcup = total > 0 ? Math.round((activas / total) * 100) : 0;
+        const pctVeh  = total > 0 ? Math.round((conPlaca / total) * 100) : 0;
+
+        document.getElementById('pct-ocupacion').textContent = pctOcup + '%';
+        document.getElementById('pct-vehiculos').textContent = pctVeh + '%';
+        document.getElementById('bar-ocupacion').style.setProperty('--w', pctOcup + '%');
+        document.getElementById('bar-vehiculos').style.setProperty('--w', pctVeh + '%');
+    }
+
+    // Animacion de numero que cambia con zoom
+    function animarNumero(id, nuevoValor) {
+        const el = document.getElementById(id);
+        el.style.transition = 'transform .2s, opacity .2s';
+        el.style.transform  = 'scale(1.3)';
+        el.style.opacity    = '0.3';
+        setTimeout(() => {
+            el.textContent      = nuevoValor;
+            el.style.transform  = 'scale(1)';
+            el.style.opacity    = '1';
+        }, 200); // espera 200ms para el efecto
+    }
+
+    // Cargar datos
+    async function cargarVisitantes() {
+        let res  = await fetch(API + "/visitantes");
+        let data = await res.json();
+        let select = document.getElementById("visitante");
+        select.innerHTML = "";
+        data.forEach(v => {
+            mapaVisitantes[v.id_visitante] = v.nombres + " " + v.apellidos;
+            let option = document.createElement("option");
+            option.value       = v.id_visitante;
+            option.textContent = v.nombres + " " + v.apellidos;
+            select.appendChild(option);
+        });
+    }
+
+    async function cargarVecinos() {
+        let res  = await fetch(API + "/vecinos");
+        let data = await res.json();
+        let select = document.getElementById("vecino");
+        select.innerHTML = "";
+        data.forEach(v => {
+            mapaVecinos[v.id_vecino]          = v.nombres + " " + v.apellidos;
+            mapaViviendasVecino[v.id_vecino]  = v.id_vivienda;
+            let option = document.createElement("option");
+            option.value       = v.id_vecino;
+            option.textContent = v.nombres + " " + v.apellidos;
+            select.appendChild(option);
+        });
+    }
+
+    async function cargarVisitas() {
+        let res  = await fetch(API + "/visitas");
+        let data = await res.json();
+        todasLasVisitas = data;
+        actualizarMetricas(data);
+        renderTabla(data);
+    }
+
+    // Dibuja las filas con animacion escalonada rowIn
+    function renderTabla(data) {
+        const tbody = document.getElementById('tablaVisitas'); // declaramos donde insertar filas
+        tbody.innerHTML = "";
+        data.forEach((v, indice) => {
+            const nombreVisitante = mapaVisitantes[v.id_visitante] || '';
+            const iniciales = nombreVisitante.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+            const fila = document.createElement('tr');
+            fila.style.animation      = 'rowIn .4s ease both';
+            fila.style.animationDelay = (indice * 0.08) + 's'; // escalonado
+            fila.innerHTML = `
+                <td class="muted">${v.id_visita}</td>
+                <td><span class="av">${iniciales}</span>${nombreVisitante}</td>
+                <td class="muted">${mapaVecinos[v.id_vecino] || ''}</td>
+                <td class="${v.placa ? 'placa' : 'muted'}">${v.placa || '—'}</td>
+                <td class="muted">${v.fecha_ingreso}</td>
+                <td class="muted">${v.hora_ingreso}</td>
+                <td class="muted">${v.observaciones || ''}</td>
+                <td>
+                    <span class="badge ${v.estado_visita === 'activa' ? 'badge-on' : 'badge-off'}">
+                        <span class="bdot ${v.estado_visita === 'activa' ? 'bdot-on' : 'bdot-off'}"></span>
+                        ${v.estado_visita === 'activa' ? 'Activa' : 'Finalizada'}
+                    </span>
+                </td>
+                <td>
+                    ${v.estado_visita === 'activa'
+                        ? `<button class="btn-salida" onclick="registrarSalida(${v.id_visita})">Salida</button>`
+                        : '<span class="muted">—</span>'}
+                </td>
+            `;
+            tbody.appendChild(fila);
+        });
+    }
+
+    // Filtrar tabla con el buscador
+    function filtrarTabla() {
+        const q = document.getElementById('buscador').value.toLowerCase();
+        const filtradas = todasLasVisitas.filter(v => {
+            const nombre = (mapaVisitantes[v.id_visitante] || '').toLowerCase();
+            const vecino = (mapaVecinos[v.id_vecino] || '').toLowerCase();
+            return nombre.includes(q) || vecino.includes(q);
+        });
+        renderTabla(filtradas);
+    }
+
+    async function registrarVisita() {
+        let visitante = document.getElementById("visitante").value;
+        let vecino    = document.getElementById("vecino").value;
+        let vivienda  = mapaViviendasVecino[vecino];
+        let placa     = document.getElementById("placa").value;
+
+        let res = await fetch(API + "/visitas", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                id_visitante:      parseInt(visitante),
+                id_vecino:         parseInt(vecino),
+                id_vivienda:       parseInt(vivienda),
+                id_usuario_agente: 1,
+                tipo_ingreso:      "normal",
+                observaciones:     "Registrado desde web",
+                foto:              imagenBase64,
+                placa:             placa
+            })
+        });
+
+        let data = await res.json();
+        document.getElementById("mensaje").textContent = data.mensaje;
+
+        // Toast: se agrega aqui, despues de recibir respuesta
+        const toast = document.getElementById('toast');
+        toast.classList.add('show'); // hace visible el toast
+        setTimeout(() => { toast.classList.remove('show'); }, 2500); // lo oculta 2.5s despues
+
+        document.getElementById("placa").value = "";
+        imagenBase64 = "";
+        cargarVisitas();
+    }
+
+    async function registrarSalida(id) {
+        await fetch(API + "/visitas/" + id + "/salida", { method: "PUT" });
+        cargarVisitas();
+    }
+
+    async function iniciarCamara() {
+        let stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const video  = document.getElementById("video");
+        const camBox = document.getElementById("cam-box");
+        video.srcObject = stream;
+        video.style.display = "block";
+        camBox.style.display = "none";
+        document.getElementById("cam-txt").textContent = "Cámara activa";
+    }
+
+    function tomarFoto() {
+        let video  = document.getElementById("video");
+        let canvas = document.getElementById("canvas");
+        let ctx    = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, 320, 240);
+        imagenBase64 = canvas.toDataURL("image/png");
+        document.getElementById("cam-txt").textContent = "Foto capturada";
+    }
+
+    async function iniciar() {
+        mostrarFecha();
+        await cargarVisitantes();
+        await cargarVecinos();
+        await cargarVisitas();
+    }
+
+    iniciar();
+</script>
+
+</body>
+</html>
