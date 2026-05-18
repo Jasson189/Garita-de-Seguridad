@@ -7,39 +7,44 @@
     <!-- Edicion Mario -->
     <style>
 
-        /*Reset */
+        /* Reset */
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /*Definicion de las animaciones antes de usarlas*/
+        /* Definicion de las animaciones antes de usarlas */
         @keyframes fadeUp {
+            /* El elemento sube desde abajo y aparece */
             from { opacity: 0; transform: translateY(16px); }
             to   { opacity: 1; transform: translateY(0); }
         }
         @keyframes pulse {
+            /* El elemento parpadea suavemente de visible a casi invisible */
             0%, 100% { opacity: 1; }
             50%       { opacity: 0.35; }
         }
         @keyframes rowIn {
+            /* Las filas de la tabla entran deslizandose desde la derecha */
             from { opacity: 0; transform: translateX(18px); }
             to   { opacity: 1; transform: translateX(0); }
         }
         @keyframes ringPing {
+            /* Onda que crece y desaparece desde el punto en linea */
             0%   { transform: scale(1);   opacity: 0.8; }
             100% { transform: scale(2.4); opacity: 0; }
         }
         @keyframes barGrow {
+            /* Crece desde 0 hasta el valor de la variable --w */
             from { width: 0; }
             to   { width: var(--w); }
         }
 
-        /*Estilos generales de la pagina*/
+        /* Estilos generales de la pagina */
         body {
             font-family: Arial, sans-serif;
             background: #F8F7FF;
             color: #2C2C2A;
         }
 
-        /*Header con gradiente purpura*/
+        /* Header con gradiente purpura */
         .header {
             background: linear-gradient(135deg, #534AB7 0%, #7F77DD 60%, #AFA9EC 100%);
             padding: 18px 24px;
@@ -49,11 +54,13 @@
             animation: fadeUp .5s ease both;
         }
         .header-left {
+            /* Alinea el escudo y el texto del titulo en fila */
             display: flex;
             align-items: center;
             gap: 12px;
         }
         .shield {
+            /* Contenedor del icono de escudo en el header */
             width: 38px;
             height: 38px;
             background: rgba(255,255,255,.2);
@@ -69,23 +76,26 @@
             fill: white;
         }
         .site-name {
+            /* Nombre principal de la garita en el header */
             color: white;
             font-size: 15px;
             font-weight: bold;
         }
         .site-sub {
+            /* Subtitulo donde el navegador inyecta la fecha del dia */
             color: rgba(255,255,255,.7);
             font-size: 12px;
             margin-top: 2px;
         }
 
-        /*Punto pulsante "en linea"*/
+        /* Punto pulsante "en linea" */
         .live {
             display: flex;
             align-items: center;
             gap: 7px;
         }
         .live-dot {
+            /* Circulo verde que parpadea con @keyframes pulse */
             width: 9px;
             height: 9px;
             border-radius: 50%;
@@ -94,6 +104,7 @@
             animation: pulse 1.8s infinite;
         }
         .live-ring {
+            /* Onda que sale del punto usando @keyframes ringPing */
             position: absolute;
             inset: -3px;
             border-radius: 50%;
@@ -105,8 +116,9 @@
             font-size: 12px;
         }
 
-        /*Tarjetas de metricas*/
+        /* Tarjetas de metricas */
         .metrics {
+            /* Grid de 4 columnas iguales para las tarjetas de contadores */
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 10px;
@@ -114,12 +126,14 @@
             animation: fadeUp .5s ease .1s both;
         }
         .metric {
+            /* Cada tarjeta individual de contador */
             background: white;
             border-radius: 12px;
             padding: 14px 16px;
             border: .5px solid #DDD9F9;
         }
         .m-label {
+            /* Etiqueta superior de cada metrica */
             font-size: 11px;
             color: #7F77DD;
             text-transform: uppercase;
@@ -128,25 +142,30 @@
             font-weight: bold;
         }
         .m-val {
+            /* Numero grande del contador, el navegador lo actualiza con los datos de Python */
             font-size: 24px;
             font-weight: bold;
         }
+        /* Colores del numero segun el tipo de metrica */
         .mv-purple { color: #534AB7; }
         .mv-green  { color: #3B6D11; }
         .mv-amber  { color: #854F0B; }
         .mv-red    { color: #A32D2D; }
         .m-sub {
+            /* Texto pequeno debajo del numero */
             font-size: 11px;
             color: #AFA9EC;
             margin-top: 3px;
         }
 
-        /*La variable --w define hasta donde crece la barra*/
+        /* La variable --w define hasta donde crece la barra */
         .bar-seccion {
+            /* Contenedor de las dos barras de progreso */
             padding: 0 24px 16px;
             animation: fadeUp .5s ease .2s both;
         }
         .bar-label {
+            /* Fila con el nombre y el porcentaje de cada barra */
             display: flex;
             justify-content: space-between;
             font-size: 12px;
@@ -155,6 +174,7 @@
             font-weight: bold;
         }
         .bar-track {
+            /* Riel gris de fondo donde crece la barra */
             height: 7px;
             background: #EEEDFE;
             border-radius: 4px;
@@ -162,16 +182,19 @@
             margin-bottom: 12px;
         }
         .bar-fill {
+            /* Barra purpura que crece con @keyframes barGrow */
+            /* El porcentaje lo calcula el navegador con los datos que devuelve Python */
             height: 100%;
             border-radius: 4px;
             background: linear-gradient(90deg, #534AB7, #AFA9EC);
             animation: barGrow .9s cubic-bezier(.22,1,.36,1) both;
         }
         .bar-fill.amber {
+            /* Variante ambar para la barra de vehiculos */
             background: linear-gradient(90deg, #BA7517, #FAC775);
         }
 
-        /*Grid de dos columnas para formulario y camara*/
+        /* Grid de dos columnas para formulario y camara */
         .grid2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -180,15 +203,17 @@
             animation: fadeUp .5s ease .3s both;
         }
 
-        /*Clases de CSS para animacion y transiciones*/
-        /*Dentro de esto usamos los frames que ya definimos*/
+        /* Clases de CSS para animacion y transiciones */
+        /* Dentro de esto usamos los frames que ya definimos */
         .card {
+            /* Tarjeta blanca con borde purpura suave */
             background: white;
             border: .5px solid #DDD9F9;
             border-radius: 14px;
             padding: 1rem 1.25rem;
         }
         .card-title {
+            /* Titulo pequeno en mayusculas de cada card */
             font-size: 11px;
             font-weight: bold;
             color: #7F77DD;
@@ -197,7 +222,7 @@
             margin-bottom: 12px;
         }
 
-        /*Campos del formulario*/
+        /* Campos del formulario */
         .field { margin-bottom: 10px; }
         .field label {
             font-size: 12px;
@@ -216,16 +241,19 @@
             font-size: 13px;
             background: white;
             outline: none;
+            /* Transicion suave del borde y anillo al hacer foco */
             transition: border-color .2s, box-shadow .2s;
         }
         .field select:focus,
         .field input[type="text"]:focus {
+            /* Anillo purpura que aparece al hacer clic en el campo */
             border-color: #534AB7;
             box-shadow: 0 0 0 3px rgba(83,74,183,.15);
         }
 
-        /*Debemos colocar la transicion en el elemento base*/
+        /* Debemos colocar la transicion en el elemento base */
         .btn-reg {
+            /* Boton principal que envia los datos al endpoint POST /visitas de Python */
             width: 100%;
             height: 38px;
             background: #534AB7;
@@ -238,11 +266,14 @@
             margin-top: 10px;
             transition: transform .15s, background .2s;
         }
+        /* Sube 1px al pasar el mouse y aclara el color */
         .btn-reg:hover  { background: #7F77DD; transform: translateY(-1px); }
+        /* Se encoge levemente al hacer clic */
         .btn-reg:active { transform: scale(.98); }
 
-        /*Caja de vista previa de la camara*/
+        /* Caja de vista previa de la camara */
         .cam-box {
+            /* Placeholder visible mientras la camara esta apagada */
             background: #F8F7FF;
             border: .5px dashed #CCC9F4;
             border-radius: 8px;
@@ -255,6 +286,7 @@
             margin-bottom: 10px;
             transition: border-color .2s;
         }
+        /* Borde purpura al pasar el mouse sobre la caja */
         .cam-box:hover { border-color: #534AB7; }
         .cam-box svg {
             width: 28px;
@@ -267,6 +299,7 @@
 
         .btn-row { display: flex; gap: 8px; }
         .btn-sm {
+            /* Botones secundarios de encender camara y tomar foto */
             flex: 1;
             height: 32px;
             border: .5px solid #CCC9F4;
@@ -279,8 +312,9 @@
         }
         .btn-sm:hover { background: #EEEDFE; border-color: #534AB7; }
 
-        /*Tarjeta del historial*/
+        /* Tarjeta del historial */
         .hist-card {
+            /* Tabla que muestra los registros que devuelve Python desde la base de datos */
             background: white;
             border: .5px solid #DDD9F9;
             border-radius: 14px;
@@ -289,6 +323,7 @@
             animation: fadeUp .5s ease .45s both;
         }
         .hist-head {
+            /* Fila superior con el titulo y el buscador */
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -296,6 +331,7 @@
         }
         .search-wrap { position: relative; width: 180px; }
         .search-wrap input {
+            /* Campo de busqueda con icono de lupa a la izquierda */
             width: 100%;
             height: 30px;
             border: .5px solid #DDD9F9;
@@ -308,6 +344,7 @@
         }
         .search-wrap input:focus { border-color: #534AB7; }
         .search-ico {
+            /* Icono SVG de lupa posicionado dentro del input */
             position: absolute;
             left: 8px;
             top: 50%;
@@ -319,7 +356,7 @@
             stroke-width: 2;
         }
 
-        /*Tabla del historial*/
+        /* Tabla del historial */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -339,12 +376,14 @@
             font-size: 13px;
             padding: 10px 8px;
             border-bottom: .5px solid #F4F3FE;
+            /* Fondo suave al pasar el mouse sobre la fila */
             transition: background .2s;
         }
         tr:hover td { background: #F8F7FF; }
 
-        /*Avatar con iniciales*/
+        /* Avatar con iniciales */
         .av {
+            /* Circulo purpura con las iniciales del visitante */
             width: 26px;
             height: 26px;
             border-radius: 50%;
@@ -359,7 +398,7 @@
             color: #534AB7;
         }
 
-        /*Badges de estado activa / finalizada*/
+        /* Badges de estado activa / finalizada */
         .badge {
             display: inline-flex;
             align-items: center;
@@ -369,18 +408,24 @@
             font-size: 11px;
             font-weight: bold;
         }
+        /* Verde para visitas activas */
         .badge-on  { background: #EAF3DE; color: #27500A; }
+        /* Purpura suave para visitas finalizadas */
         .badge-off { background: #F4F3FE; color: #7F77DD; }
         .bdot {
+            /* Punto de color dentro del badge de estado */
             width: 6px;
             height: 6px;
             border-radius: 50%;
         }
+        /* Punto verde pulsante para visitas activas */
         .bdot-on  { background: #639922; animation: pulse 2s infinite; }
+        /* Punto gris estatico para visitas finalizadas */
         .bdot-off { background: #AFA9EC; }
 
-        /*Boton de salida*/
+        /* Boton de salida */
         .btn-salida {
+            /* Boton que llama al endpoint PUT /visitas/{id}/salida de Python */
             padding: 3px 10px;
             background: transparent;
             border: .5px solid #A32D2D;
@@ -396,20 +441,23 @@
         .muted  { color: #AFA9EC; font-size: 12px; }
 
         #mensaje {
+            /* Muestra el mensaje que devuelve Python tras registrar la visita */
             font-size: 13px;
             color: #3B6D11;
             margin-top: 8px;
         }
 
         video, canvas {
+            /* Video y canvas ocultos al inicio, el navegador los muestra al encender */
             display: block;
             margin: 10px 0;
             border-radius: 8px;
             border: .5px solid #DDD9F9;
         }
 
-        /*Debemos colocar Toast oculto para que "show" lo muestre*/
+        /* Debemos colocar Toast oculto para que "show" lo muestre */
         .toast {
+            /* Notificacion flotante que aparece cuando Python confirma el registro */
             position: fixed;
             bottom: 24px;
             right: 24px;
@@ -429,7 +477,7 @@
 </head>
 <body>
 
-    <!--Aqui usamos las clases que ya definimos dentro de style-->
+    <!-- Aqui usamos las clases que ya definimos dentro de style -->
 
     <!-- Header con escudo y punto en linea -->
     <div class="header">
@@ -439,32 +487,38 @@
             </div>
             <div>
                 <div class="site-name">Garita — Registro de Visitas</div>
+                <!-- El navegador llena este div con la fecha actual al cargar la pagina -->
                 <div class="site-sub" id="fecha-turno">Cargando turno...</div>
             </div>
         </div>
+        <!-- Punto verde pulsante que indica que la conexion con la API de Python esta activa -->
         <div class="live">
             <div class="live-dot"><div class="live-ring"></div></div>
             <span class="live-txt">En línea</span>
         </div>
     </div>
 
-    <!-- Tarjetas de metricas -->
+    <!-- Tarjetas de metricas que el navegador actualiza con los datos que devuelve Python -->
     <div class="metrics">
+        <!-- Contador de visitas que aun no han registrado salida segun Python -->
         <div class="metric">
             <div class="m-label">Visitas activas</div>
             <div class="m-val mv-purple" id="cnt-activas">0</div>
             <div class="m-sub">ahora mismo</div>
         </div>
+        <!-- Contador del total de visitas registradas en el dia segun Python -->
         <div class="metric">
             <div class="m-label">Ingresos hoy</div>
             <div class="m-val mv-green" id="cnt-ingresos">0</div>
             <div class="m-sub">total del día</div>
         </div>
+        <!-- Contador de visitas que ya registraron salida segun Python -->
         <div class="metric">
             <div class="m-label">Salidas hoy</div>
             <div class="m-val mv-amber" id="cnt-salidas">0</div>
             <div class="m-sub">total del día</div>
         </div>
+        <!-- Contador de visitas sin foto registrada segun Python -->
         <div class="metric">
             <div class="m-label">Sin foto</div>
             <div class="m-val mv-red" id="cnt-sinfoto">0</div>
@@ -475,23 +529,37 @@
     <!-- Barras de progreso animadas -->
     <!-- La variable --w define hasta donde crece la barra -->
     <div class="bar-seccion">
-        <div class="bar-label"><span>Ocupación del turno</span><span id="pct-ocupacion">0%</span></div>
-        <div class="bar-track"><div class="bar-fill" id="bar-ocupacion" style="--w:0%"></div></div>
-        <div class="bar-label"><span>Visitas con vehículo</span><span id="pct-vehiculos" style="color:#BA7517">0%</span></div>
-        <div class="bar-track"><div class="bar-fill amber" id="bar-vehiculos" style="--w:0%"></div></div>
+        <!-- Barra purpura que muestra el porcentaje de visitas activas vs total segun Python -->
+        <div class="bar-label">
+            <span>Ocupación del turno</span>
+            <span id="pct-ocupacion">0%</span>
+        </div>
+        <div class="bar-track">
+            <div class="bar-fill" id="bar-ocupacion" style="--w:0%"></div>
+        </div>
+        <!-- Barra ambar que muestra el porcentaje de visitas con vehiculo segun Python -->
+        <div class="bar-label">
+            <span>Visitas con vehículo</span>
+            <span id="pct-vehiculos" style="color:#BA7517">0%</span>
+        </div>
+        <div class="bar-track">
+            <div class="bar-fill amber" id="bar-vehiculos" style="--w:0%"></div>
+        </div>
     </div>
 
     <!-- Grid: formulario y camara lado a lado -->
     <div class="grid2">
 
-        <!-- Card 1: formulario de registro -->
+        <!-- Card 1: formulario que envia los datos al endpoint POST /visitas de Python -->
         <div class="card">
             <div class="card-title">Nueva visita</div>
 
+            <!-- Selector que el navegador llena con los visitantes que devuelve Python -->
             <div class="field">
                 <label>Visitante:</label>
                 <select id="visitante"></select>
             </div>
+            <!-- Selector que el navegador llena con los vecinos que devuelve Python -->
             <div class="field">
                 <label>Vecino:</label>
                 <select id="vecino"></select>
@@ -502,30 +570,35 @@
             </div>
 
             <button class="btn-reg" onclick="registrarVisita()">+ Registrar ingreso</button>
+            <!-- Muestra el mensaje de confirmacion que devuelve Python -->
             <p id="mensaje"></p>
         </div>
 
-        <!-- Card 2: camara -->
+        <!-- Card 2: camara para capturar la foto que se envia a Python -->
         <div class="card">
             <div class="card-title">Captura fotográfica</div>
+            <!-- Placeholder visible mientras la camara esta apagada -->
             <div class="cam-box" id="cam-box">
                 <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
                 <span id="cam-txt">Cámara inactiva</span>
             </div>
+            <!-- Video oculto al inicio, el navegador lo muestra al encender la camara -->
             <video id="video" width="100%" height="160" autoplay style="display:none"></video>
             <div class="btn-row">
                 <button class="btn-sm" onclick="iniciarCamara()">Encender cámara</button>
                 <button class="btn-sm" onclick="tomarFoto()">Tomar foto</button>
             </div>
+            <!-- Canvas oculto que convierte el frame del video a base64 para enviarlo a Python -->
             <canvas id="canvas" width="320" height="240" style="display:none"></canvas>
         </div>
 
     </div>
 
-    <!-- Card 3: historial -->
+    <!-- Card 3: historial con los registros que devuelve Python desde la base de datos -->
     <div class="hist-card">
         <div class="hist-head">
             <div class="card-title" style="margin-bottom:0">Historial de visitas</div>
+            <!-- Buscador que filtra la tabla en memoria sin volver a llamar a Python -->
             <div class="search-wrap">
                 <svg class="search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                 <input type="text" id="buscador" placeholder="Buscar visitante..." oninput="filtrarTabla()"/>
@@ -545,20 +618,25 @@
                     <th style="width:7%">Acción</th>
                 </tr>
             </thead>
+            <!-- El navegador inserta aqui las filas con los datos que devuelve Python -->
             <tbody id="tablaVisitas"></tbody>
         </table>
     </div>
 
-    <!--El toast existe en el HTML pero empieza invisible hasta que JS lo muestre-->
+    <!-- El toast existe en el HTML pero empieza invisible hasta que Python confirma el registro -->
     <div id="toast" class="toast">Visita registrada correctamente</div>
 
 <script>
+    // Direccion base de la API desarrollada en Python
     const API = "http://127.0.0.1:8000";
 
+    // Mapas para relacionar IDs con nombres sin volver a llamar a Python
     let mapaVisitantes = {};
     let mapaVecinos = {};
     let mapaViviendasVecino = {};
+    // Imagen capturada por la camara que se envia a Python en base64
     let imagenBase64 = "";
+    // Guarda todos los registros que devolvio Python para filtrar sin otra llamada
     let todasLasVisitas = [];
 
     // Mostrar fecha y turno en el header
@@ -566,28 +644,32 @@
         const ahora = new Date();
         const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         const fecha = ahora.toLocaleDateString('es-ES', opciones);
+        // Inyecta la fecha en el div id="fecha-turno" del header
         document.getElementById('fecha-turno').textContent = fecha;
     }
 
     // Actualizar las metricas con animacion
     function actualizarMetricas(visitas) {
-        const activas   = visitas.filter(v => v.estado_visita === 'activa').length;
-        const total     = visitas.length;
-        const salidas   = visitas.filter(v => v.estado_visita !== 'activa').length;
-        const sinFoto   = visitas.filter(v => !v.foto).length;
-        const conPlaca  = visitas.filter(v => v.placa).length;
+        // Cuenta los registros que devolvio Python segun su estado
+        const activas  = visitas.filter(v => v.estado_visita === 'activa').length;
+        const total    = visitas.length;
+        const salidas  = visitas.filter(v => v.estado_visita !== 'activa').length;
+        const sinFoto  = visitas.filter(v => !v.foto).length;
+        const conPlaca = visitas.filter(v => v.placa).length;
 
+        // Llama a animarNumero para actualizar cada tarjeta con efecto zoom
         animarNumero('cnt-activas',  activas);
         animarNumero('cnt-ingresos', total);
         animarNumero('cnt-salidas',  salidas);
         animarNumero('cnt-sinfoto',  sinFoto);
 
-        // Barras de progreso
+        // Calcula los porcentajes con los datos de Python y actualiza las barras
         const pctOcup = total > 0 ? Math.round((activas / total) * 100) : 0;
         const pctVeh  = total > 0 ? Math.round((conPlaca / total) * 100) : 0;
 
         document.getElementById('pct-ocupacion').textContent = pctOcup + '%';
         document.getElementById('pct-vehiculos').textContent = pctVeh + '%';
+        // setProperty cambia la variable --w que usa @keyframes barGrow
         document.getElementById('bar-ocupacion').style.setProperty('--w', pctOcup + '%');
         document.getElementById('bar-vehiculos').style.setProperty('--w', pctVeh + '%');
     }
@@ -596,22 +678,26 @@
     function animarNumero(id, nuevoValor) {
         const el = document.getElementById(id);
         el.style.transition = 'transform .2s, opacity .2s';
+        // Agranda y atenua el numero antes de cambiar el valor
         el.style.transform  = 'scale(1.3)';
         el.style.opacity    = '0.3';
         setTimeout(() => {
-            el.textContent      = nuevoValor;
-            el.style.transform  = 'scale(1)';
-            el.style.opacity    = '1';
+            el.textContent     = nuevoValor;
+            // Vuelve al tamano y opacidad normales con el nuevo valor
+            el.style.transform = 'scale(1)';
+            el.style.opacity   = '1';
         }, 200); // espera 200ms para el efecto
     }
 
     // Cargar datos
     async function cargarVisitantes() {
+        // Llama al endpoint GET /visitantes de Python y llena el selector
         let res  = await fetch(API + "/visitantes");
         let data = await res.json();
         let select = document.getElementById("visitante");
         select.innerHTML = "";
         data.forEach(v => {
+            // Guarda el nombre en el mapa para usarlo despues sin otra llamada a Python
             mapaVisitantes[v.id_visitante] = v.nombres + " " + v.apellidos;
             let option = document.createElement("option");
             option.value       = v.id_visitante;
@@ -621,13 +707,15 @@
     }
 
     async function cargarVecinos() {
+        // Llama al endpoint GET /vecinos de Python y llena el selector
         let res  = await fetch(API + "/vecinos");
         let data = await res.json();
         let select = document.getElementById("vecino");
         select.innerHTML = "";
         data.forEach(v => {
-            mapaVecinos[v.id_vecino]          = v.nombres + " " + v.apellidos;
-            mapaViviendasVecino[v.id_vecino]  = v.id_vivienda;
+            // Guarda nombre y vivienda del vecino para usarlos al registrar en Python
+            mapaVecinos[v.id_vecino]         = v.nombres + " " + v.apellidos;
+            mapaViviendasVecino[v.id_vecino] = v.id_vivienda;
             let option = document.createElement("option");
             option.value       = v.id_vecino;
             option.textContent = v.nombres + " " + v.apellidos;
@@ -636,8 +724,10 @@
     }
 
     async function cargarVisitas() {
+        // Llama al endpoint GET /visitas de Python y actualiza toda la interfaz
         let res  = await fetch(API + "/visitas");
         let data = await res.json();
+        // Guarda copia completa para que filtrarTabla() filtre sin llamar a Python
         todasLasVisitas = data;
         actualizarMetricas(data);
         renderTabla(data);
@@ -648,10 +738,12 @@
         const tbody = document.getElementById('tablaVisitas'); // declaramos donde insertar filas
         tbody.innerHTML = "";
         data.forEach((v, indice) => {
+            // Extrae las dos primeras iniciales del nombre devuelto por Python
             const nombreVisitante = mapaVisitantes[v.id_visitante] || '';
             const iniciales = nombreVisitante.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
             const fila = document.createElement('tr');
+            // Aplica la animacion rowIn con delay diferente en cada fila
             fila.style.animation      = 'rowIn .4s ease both';
             fila.style.animationDelay = (indice * 0.08) + 's'; // escalonado
             fila.innerHTML = `
@@ -681,6 +773,7 @@
     // Filtrar tabla con el buscador
     function filtrarTabla() {
         const q = document.getElementById('buscador').value.toLowerCase();
+        // Filtra el array guardado en memoria sin llamar a Python
         const filtradas = todasLasVisitas.filter(v => {
             const nombre = (mapaVisitantes[v.id_visitante] || '').toLowerCase();
             const vecino = (mapaVecinos[v.id_vecino] || '').toLowerCase();
@@ -692,9 +785,11 @@
     async function registrarVisita() {
         let visitante = document.getElementById("visitante").value;
         let vecino    = document.getElementById("vecino").value;
+        // Obtiene el id de vivienda guardado del mapa para enviarlo a Python
         let vivienda  = mapaViviendasVecino[vecino];
         let placa     = document.getElementById("placa").value;
 
+        // Envia los datos al endpoint POST /visitas de Python
         let res = await fetch(API + "/visitas", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -705,26 +800,33 @@
                 id_usuario_agente: 1,
                 tipo_ingreso:      "normal",
                 observaciones:     "Registrado desde web",
+                // Foto capturada por la camara convertida a base64 para Python
                 foto:              imagenBase64,
                 placa:             placa
             })
         });
 
+        // Muestra el mensaje que devuelve Python en el parrafo id="mensaje"
         let data = await res.json();
         document.getElementById("mensaje").textContent = data.mensaje;
 
         // Toast: se agrega aqui, despues de recibir respuesta
+        // El toast aparece cuando Python confirma que el registro fue exitoso
         const toast = document.getElementById('toast');
         toast.classList.add('show'); // hace visible el toast
         setTimeout(() => { toast.classList.remove('show'); }, 2500); // lo oculta 2.5s despues
 
+        // Limpia el campo de placa y la foto para el siguiente registro
         document.getElementById("placa").value = "";
         imagenBase64 = "";
+        // Recarga los datos desde Python para reflejar el nuevo registro
         cargarVisitas();
     }
 
     async function registrarSalida(id) {
+        // Llama al endpoint PUT /visitas/{id}/salida de Python para cerrar la visita
         await fetch(API + "/visitas/" + id + "/salida", { method: "PUT" });
+        // Recarga los datos desde Python para reflejar el cambio de estado
         cargarVisitas();
     }
 
@@ -733,7 +835,8 @@
         const video  = document.getElementById("video");
         const camBox = document.getElementById("cam-box");
         video.srcObject = stream;
-        video.style.display = "block";
+        // Muestra el video en vivo y oculta el placeholder del icono
+        video.style.display  = "block";
         camBox.style.display = "none";
         document.getElementById("cam-txt").textContent = "Cámara activa";
     }
@@ -742,15 +845,20 @@
         let video  = document.getElementById("video");
         let canvas = document.getElementById("canvas");
         let ctx    = canvas.getContext("2d");
+        // Copia el frame actual del video al canvas
         ctx.drawImage(video, 0, 0, 320, 240);
+        // Convierte el canvas a base64 para enviarlo a Python en el registro
         imagenBase64 = canvas.toDataURL("image/png");
         document.getElementById("cam-txt").textContent = "Foto capturada";
     }
 
     async function iniciar() {
+        // Ejecuta todas las cargas iniciales al abrir la pagina
         mostrarFecha();
+        // Llama a Python para obtener visitantes y vecinos antes de cargar visitas
         await cargarVisitantes();
         await cargarVecinos();
+        // cargarVisitas llama a Python y luego actualiza metricas y tabla
         await cargarVisitas();
     }
 
