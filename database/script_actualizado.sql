@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict f0rzDGA9jU63BRUBus6XQwipLIXhxamvWTSqL2Cj3TB44di4B1q76HHNW361Jvu
+\restrict fpOgTV4RHh0yTEWzq9I0aBsjoTFmOLL8VTPYkGtXo0jnbqnc3BahpJqTymUehvn
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
 
--- Started on 2026-05-16 22:28:39
+-- Started on 2026-05-23 21:38:52
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -66,7 +66,7 @@ CREATE SEQUENCE public.prerregistros_id_prerregistro_seq
 ALTER SEQUENCE public.prerregistros_id_prerregistro_seq OWNER TO postgres;
 
 --
--- TOC entry 5003 (class 0 OID 0)
+-- TOC entry 4987 (class 0 OID 0)
 -- Dependencies: 231
 -- Name: prerregistros_id_prerregistro_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -106,7 +106,7 @@ CREATE SEQUENCE public.roles_id_rol_seq
 ALTER SEQUENCE public.roles_id_rol_seq OWNER TO postgres;
 
 --
--- TOC entry 5004 (class 0 OID 0)
+-- TOC entry 4988 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: roles_id_rol_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -149,7 +149,7 @@ CREATE SEQUENCE public.usuarios_id_usuarios_seq
 ALTER SEQUENCE public.usuarios_id_usuarios_seq OWNER TO postgres;
 
 --
--- TOC entry 5005 (class 0 OID 0)
+-- TOC entry 4989 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: usuarios_id_usuarios_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -196,7 +196,7 @@ CREATE SEQUENCE public.vecinos_id_vecino_seq
 ALTER SEQUENCE public.vecinos_id_vecino_seq OWNER TO postgres;
 
 --
--- TOC entry 5006 (class 0 OID 0)
+-- TOC entry 4990 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: vecinos_id_vecino_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -240,7 +240,7 @@ CREATE SEQUENCE public.vehiculos_id_vehiculo_seq
 ALTER SEQUENCE public.vehiculos_id_vehiculo_seq OWNER TO postgres;
 
 --
--- TOC entry 5007 (class 0 OID 0)
+-- TOC entry 4991 (class 0 OID 0)
 -- Dependencies: 229
 -- Name: vehiculos_id_vehiculo_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -284,7 +284,7 @@ CREATE SEQUENCE public.visitantes_id_visitantes_seq
 ALTER SEQUENCE public.visitantes_id_visitantes_seq OWNER TO postgres;
 
 --
--- TOC entry 5008 (class 0 OID 0)
+-- TOC entry 4992 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: visitantes_id_visitantes_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -334,7 +334,7 @@ CREATE SEQUENCE public.visitas_id_visita_seq
 ALTER SEQUENCE public.visitas_id_visita_seq OWNER TO postgres;
 
 --
--- TOC entry 5009 (class 0 OID 0)
+-- TOC entry 4993 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: visitas_id_visita_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -376,7 +376,7 @@ CREATE SEQUENCE public.viviendas_id_vivienda_seq
 ALTER SEQUENCE public.viviendas_id_vivienda_seq OWNER TO postgres;
 
 --
--- TOC entry 5010 (class 0 OID 0)
+-- TOC entry 4994 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: viviendas_id_vivienda_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -446,176 +446,6 @@ ALTER TABLE ONLY public.visitas ALTER COLUMN id_visita SET DEFAULT nextval('publ
 --
 
 ALTER TABLE ONLY public.viviendas ALTER COLUMN id_vivienda SET DEFAULT nextval('public.viviendas_id_vivienda_seq'::regclass);
-
-
---
--- TOC entry 4997 (class 0 OID 65776)
--- Dependencies: 232
--- Data for Name: prerregistros; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.prerregistros (id_prerregistro, id_vecino, nombre_visitante, dpi_visitante, telefono_visitante, correo_visitante, placa, motivo, fecha_visita, hora_visita, codigo_qr, estado_qr, fecha_creacion) FROM stdin;
-\.
-
-
---
--- TOC entry 4983 (class 0 OID 57465)
--- Dependencies: 218
--- Data for Name: roles; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.roles (id_rol, nombre_rol, descripcion, estado) FROM stdin;
-1	Administrador	Control total del sistema	t
-2	Agente	Encargado de registrar visitas	t
-3	Vecino	Residente de la vivienda	t
-\.
-
-
---
--- TOC entry 4985 (class 0 OID 57475)
--- Dependencies: 220
--- Data for Name: usuarios; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.usuarios (id_usuarios, nombre_usuario, correo, contrasena_hash, id_rol, estado, fecha_creacion) FROM stdin;
-1	admin	admin@garita.com	1234	1	t	2026-05-13 23:45:15.203207
-\.
-
-
---
--- TOC entry 4989 (class 0 OID 57504)
--- Dependencies: 224
--- Data for Name: vecinos; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.vecinos (id_vecino, id_usuario, id_vivienda, nombres, apellidos, dpi, telefono, correo, codigo_unico, estado, fecha_registro) FROM stdin;
-1	1	1	Juan	Pérez	1234567890101	55551234	juan@gmail.com	CASA1-ABC	t	2026-05-13 23:45:15.203207
-2	1	1	jose	lopez	1111111	44444	joselopez@gmail.com	VEC-0002	t	2026-05-16 15:35:07.046136
-4	1	1	jose	lopez	111111	55555	joselopez@gmail.com	VEC-0003	t	2026-05-16 15:38:56.924521
-8	1	1	jose	lopez	1111	555	joselopez@gmail.com	VEC-0005	t	2026-05-16 16:04:05.901794
-\.
-
-
---
--- TOC entry 4995 (class 0 OID 65760)
--- Dependencies: 230
--- Data for Name: vehiculos; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.vehiculos (id_vehiculo, id_vecino, placa, marca, color, modelo, autorizado, fecha_registro) FROM stdin;
-1	1	P123ABC	Toyota	Negro	Corolla	t	2026-05-16 21:21:15.456374
-\.
-
-
---
--- TOC entry 4991 (class 0 OID 57527)
--- Dependencies: 226
--- Data for Name: visitantes; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.visitantes (id_visitantes, nombres, apellidos, tipo_documento, numero_documento, telefono, observaciones, fecha_registro) FROM stdin;
-1	Carlos	Méndez	DPI	1234567890101	55550000	\N	2026-05-13 23:45:15.203207
-\.
-
-
---
--- TOC entry 4993 (class 0 OID 57537)
--- Dependencies: 228
--- Data for Name: visitas; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.visitas (id_visita, id_visitante, id_vecino, id_vivienda, id_usuario_agente, tipo_ingreso, fecha_ingreso, hora_ingreso, estado_visita, observaciones, fecha_salida, hora_salida, foto, placa) FROM stdin;
-1	1	1	1	1	normal	2026-05-14	00:47:10.835932	finalizada	Registrado desde web	2026-05-16	14:25:56.84468	fotos/visita_1_1778741230.png	1sthy4
-2	1	1	1	1	normal	2026-05-16	14:23:25.262562	finalizada	Registrado desde web	2026-05-16	14:26:00.832364	fotos/visita_1_1778963005.png	SDADASDAS
-3	1	1	1	1	normal	2026-05-16	15:07:02.253509	finalizada	Registrado desde web	2026-05-16	15:07:24.254475	\N	4TFDGSR
-4	1	2	1	1	normal	2026-05-16	16:19:25.468762	finalizada	Registrado desde web	2026-05-16	21:49:54.908188	fotos/visita_1_1778969965.png	6788
-5	1	1	1	1	normal	2026-05-16	21:48:40.087364	finalizada	Registrado desde web	2026-05-16	21:53:21.950422	\N	P123ABC
-6	1	4	1	1	normal	2026-05-16	22:00:12.98579	finalizada	Registrado desde web	2026-05-16	22:00:23.831703	\N	SDADASDAS
-\.
-
-
---
--- TOC entry 4987 (class 0 OID 57495)
--- Dependencies: 222
--- Data for Name: viviendas; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.viviendas (id_vivienda, numero_vivienda, sector, direccion_referencia, estado, fecha_registro) FROM stdin;
-1	Casa 1	Sector A	Frente al parque	t	2026-05-13 23:45:15.203207
-2	Casa 2	Sector A	Cerca de la entrada	t	2026-05-13 23:45:15.203207
-\.
-
-
---
--- TOC entry 5011 (class 0 OID 0)
--- Dependencies: 231
--- Name: prerregistros_id_prerregistro_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.prerregistros_id_prerregistro_seq', 1, false);
-
-
---
--- TOC entry 5012 (class 0 OID 0)
--- Dependencies: 217
--- Name: roles_id_rol_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.roles_id_rol_seq', 3, true);
-
-
---
--- TOC entry 5013 (class 0 OID 0)
--- Dependencies: 219
--- Name: usuarios_id_usuarios_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.usuarios_id_usuarios_seq', 1, true);
-
-
---
--- TOC entry 5014 (class 0 OID 0)
--- Dependencies: 223
--- Name: vecinos_id_vecino_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.vecinos_id_vecino_seq', 8, true);
-
-
---
--- TOC entry 5015 (class 0 OID 0)
--- Dependencies: 229
--- Name: vehiculos_id_vehiculo_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.vehiculos_id_vehiculo_seq', 1, true);
-
-
---
--- TOC entry 5016 (class 0 OID 0)
--- Dependencies: 225
--- Name: visitantes_id_visitantes_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.visitantes_id_visitantes_seq', 1, true);
-
-
---
--- TOC entry 5017 (class 0 OID 0)
--- Dependencies: 227
--- Name: visitas_id_visita_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.visitas_id_visita_seq', 6, true);
-
-
---
--- TOC entry 5018 (class 0 OID 0)
--- Dependencies: 221
--- Name: viviendas_id_vivienda_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.viviendas_id_vivienda_seq', 2, true);
 
 
 --
@@ -834,11 +664,11 @@ ALTER TABLE ONLY public.visitas
     ADD CONSTRAINT visitas_id_vivienda_fkey FOREIGN KEY (id_vivienda) REFERENCES public.viviendas(id_vivienda);
 
 
--- Completed on 2026-05-16 22:28:40
+-- Completed on 2026-05-23 21:38:52
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict f0rzDGA9jU63BRUBus6XQwipLIXhxamvWTSqL2Cj3TB44di4B1q76HHNW361Jvu
+\unrestrict fpOgTV4RHh0yTEWzq9I0aBsjoTFmOLL8VTPYkGtXo0jnbqnc3BahpJqTymUehvn
 
