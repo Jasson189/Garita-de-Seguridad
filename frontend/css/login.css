@@ -1,0 +1,144 @@
+/* Estilos del login */
+
+/* Reset general */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Fondo de la pagina */
+body {
+  background: #f4f4ff;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Contenedor principal */
+.login-container {
+  width: 100%;
+  max-width: 750px;
+  background: white;
+  border-radius: 25px;
+  overflow: hidden;
+  box-shadow: 0px 15px 40px rgba(0, 0, 0, 0.20);
+}
+
+/* Encabezado superior */
+.login-header {
+  background: linear-gradient(90deg, #5b4bdb, #7b6cf0);
+  color: white;
+  padding: 50px;
+  text-align: center;
+}
+
+/* Titulo */
+.login-header h1 {
+  font-size: 42px;
+  margin-bottom: 15px;
+}
+
+/* Subtitulo */
+.login-header p {
+  font-size: 20px;
+  opacity: 0.9;
+}
+
+/* Cuerpo del login */
+.login-body {
+  padding: 45px;
+}
+
+/* Grupo de input */
+.input-group {
+  margin-bottom: 20px;
+}
+
+/* Etiquetas */
+.input-group label {
+  display: block;
+  margin-bottom: 10px;
+  color: #555;
+  font-weight: bold;
+  font-size: 24px;
+}
+
+/* Inputs */
+.input-group input {
+  width: 100%;
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  outline: none;
+  transition: 0.3s;
+  font-size: 18px;
+}
+
+/* Input activo */
+.input-group input:focus {
+  border-color: #5b4bdb;
+}
+
+/* Boton login */
+.btn-login {
+  width: 100%;
+  padding: 20px;
+  border: none;
+  border-radius: 14px;
+  background: #5b4bdb;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+/* Hover boton login */
+.btn-login:hover {
+  background: #4938d1;
+}
+
+/* Mensajes */
+.mensaje {
+  margin-top: 15px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Ajuste para celulares */
+@media (max-width: 600px) {
+  .login-header {
+      padding: 35px 25px;
+  }
+
+  .login-header h1 {
+      font-size: 34px;
+  }
+
+  .login-header p {
+      font-size: 17px;
+  }
+
+  .login-body {
+      padding: 30px 25px;
+  }
+
+  .input-group label {
+      font-size: 19px;
+  }
+
+  .input-group input {
+      padding: 15px;
+      font-size: 16px;
+  }
+
+  .btn-login {
+      padding: 17px;
+      font-size: 20px;
+  }
+}

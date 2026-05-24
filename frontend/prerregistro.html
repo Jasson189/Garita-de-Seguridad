@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <!-- CONFIGURACION GENERAL -->
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Prerregistro de Visitas - Garita</title>
+
+    <!-- ESTILOS -->
+    <link rel="stylesheet" href="css/prerregistro.css">
+
+</head>
+
+<body>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <main class="contenedor-prerregistro">
+
+        <!-- TARJETA -->
+        <section class="tarjeta-prerregistro">
+
+            <!-- ENCABEZADO -->
+            <div class="encabezado">
+
+                <div>
+                    <h1>Prerregistro de Visita</h1>
+
+                    <p>
+                        Complete los datos del visitante para generar un código QR de acceso.
+                    </p>
+                </div>
+
+                <a href="index.html" class="btn-volver">
+                    Volver
+                </a>
+
+            </div>
+
+            <!-- FORMULARIO -->
+            <form id="formPrerregistro" class="formulario">
+
+                <div class="grupo-form">
+                    <label for="nombre_visitante">Nombre del visitante</label>
+
+                    <input
+                        type="text"
+                        id="nombre_visitante"
+                        placeholder="Ejemplo: Pedro Suya"
+                        required
+                    >
+                </div>
+
+                <div class="grupo-form">
+                    <label for="dpi_visitante">DPI visitante</label>
+
+                    <input
+                        type="text"
+                        id="dpi_visitante"
+                        placeholder="Ejemplo: 1234567890101"
+                    >
+                </div>
+
+                <div class="grupo-form">
+                    <label for="correo_visitante">Correo del visitante</label>
+
+                    <input
+                        type="email"
+                        id="correo_visitante"
+                        placeholder="correo@gmail.com"
+                    >
+                </div>
+
+                <div class="grupo-form">
+                    <label for="placa">Placa del vehículo</label>
+
+                    <input
+                        type="text"
+                        id="placa"
+                        placeholder="Ejemplo: P123ABC"
+                    >
+                </div>
+
+                <div class="grupo-form">
+                    <label for="motivo_visita">Motivo de visita</label>
+
+                    <input
+                        type="text"
+                        id="motivo_visita"
+                        placeholder="Ejemplo: Familia, entrega, reunión..."
+                    >
+                </div>
+
+                <button type="submit" class="btn-generar">
+                    Generar prerregistro
+                </button>
+
+            </form>
+
+            <!-- RESULTADO -->
+            <section class="resultado">
+
+                <h3 id="mensaje"></h3>
+
+                <p id="codigoQR"></p>
+
+                <div id="contenedorQR" class="contenedor-qr"></div>
+
+            </section>
+
+        </section>
+
+    </main>
+
+<!-- SCRIPTS -->
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/preregistro.js"></script>
+</body>
+
+</html>
