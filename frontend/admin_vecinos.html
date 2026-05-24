@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <!-- Configuración básica de la página -->
+    <meta charset="UTF-8">
+    <title>Admin Vecinos</title>
+
+    <!-- Archivo de estilos -->
+    <link rel="stylesheet" href="css/admin_vecinos.css">
+</head>
+
+<body>
+
+    <!-- Contenedor principal -->
+    <main class="contenedor">
+
+        <!-- Encabezado del panel -->
+        <header class="encabezado">
+            <h1>Panel Administrativo - Vecinos</h1>
+
+            <!-- Botón para regresar al inicio -->
+            <a href="index.html" class="btn-volver">
+                Volver
+            </a>
+        </header>
+
+        <!-- Sección de búsqueda y botón nuevo -->
+        <section class="acciones">
+
+            <!-- Buscador de vecinos -->
+            <input
+                type="text"
+                id="buscarVecino"
+                placeholder="Buscar vecino..."
+            >
+
+            <!-- Botón para abrir modal de nuevo vecino -->
+            <button
+                type="button"
+                class="btn-nuevo"
+                onclick="abrirModalNuevo()"
+            >
+                + Nuevo vecino
+            </button>
+
+        </section>
+
+        <!-- Contenedor de la tabla -->
+        <section class="tabla-contenedor">
+
+            <!-- Tabla donde se muestran los vecinos -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Vivienda</th>
+                        <th>Codigo</th>
+                        <th>Telefono</th>
+                        <th>Correo</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <!-- Aquí se cargan los vecinos desde JavaScript -->
+                <tbody id="tablaVecinos"></tbody>
+            </table>
+
+        </section>
+
+    </main>
+
+    <!-- Modal para editar vecino -->
+    <div id="modalEditar" class="modal">
+
+        <div class="modal-contenido">
+
+            <h2>Editar vecino</h2>
+
+            <!-- Formulario para editar vecino -->
+            <form id="formEditarVecino">
+
+                <!-- ID oculto del vecino -->
+                <input type="hidden" id="editIdVecino">
+
+                <!-- Selección de vivienda -->
+                <label>Vivienda</label>
+                <select id="editIdVivienda" required>
+                    <option value="" disabled selected>Seleccione una vivienda</option>
+                </select>
+
+                <!-- Datos del vecino -->
+                <label>Nombres</label>
+                <input type="text" id="editNombres" required>
+
+                <label>Apellidos</label>
+                <input type="text" id="editApellidos" required>
+
+                <label>DPI</label>
+                <input type="text" id="editDpi">
+
+                <label>Telefono</label>
+                <input type="text" id="editTelefono">
+
+                <label>Correo</label>
+                <input type="email" id="editCorreo" required>
+
+                <!-- Estado del vecino -->
+                <label>Estado</label>
+                <select id="editEstado">
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                </select>
+
+                <!-- Botones del modal -->
+                <div class="modal-botones">
+
+                    <button type="submit" class="btn-guardar">
+                        Guardar
+                    </button>
+
+                    <button type="button" class="btn-cancelar" onclick="cerrarModalEditar()">
+                        Cancelar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Modal para crear nuevo vecino -->
+    <div id="modalNuevo" class="modal">
+
+        <div class="modal-contenido">
+
+            <h2>Nuevo vecino</h2>
+
+            <!-- Formulario para registrar vecino -->
+            <form id="formNuevoVecino">
+
+                <!-- Selección de vivienda -->
+                <label>Vivienda</label>
+                <select id="nuevoIdVivienda" required>
+                    <option value="" disabled selected>Seleccione una vivienda</option>
+                </select>
+
+                <!-- Datos del nuevo vecino -->
+                <label>Nombres</label>
+                <input type="text" id="nuevoNombres" required>
+
+                <label>Apellidos</label>
+                <input type="text" id="nuevoApellidos" required>
+
+                <label>DPI</label>
+                <input type="text" id="nuevoDpi">
+
+                <label>Telefono</label>
+                <input type="text" id="nuevoTelefono">
+
+                <label>Correo</label>
+                <input type="email" id="nuevoCorreo" required>
+
+                <!-- Botones del modal -->
+                <div class="modal-botones">
+
+                    <button type="submit" class="btn-guardar">
+                        Guardar
+                    </button>
+
+                    <button type="button" class="btn-cancelar" onclick="cerrarModalNuevo()">
+                        Cancelar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        validarRol(["Administrador"]);
+    </script>    
+    <script src="js/admin_vecinos.js"></script>
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Visitas</title>
+    <link rel="stylesheet" href="css/index.css">
+</head>
+
+<body>
+
+    <!-- Header con escudo y punto en linea -->
+    <div class="header">
+
+        <div class="header-left">
+
+            <div class="shield">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2L4 5v6c0 5.5 3.5 10.7 8 12 4.5-1.3 8-6.5 8-12V5l-8-3z" />
+                </svg>
+            </div>
+
+            <div>
+                <div class="site-name">
+                    Garita — Registro de Visitas
+                </div>
+
+                <button id="btnCerrarSesion" class="btn-cerrar-sesion">
+                    Cerrar sesión
+                </button>
+
+                <div class="site-sub" id="nombreUsuario">
+                    Cargando usuario...
+                </div>
+
+                <div class="site-sub" id="fecha-turno">
+                    Cargando turno...
+                </div>
+            </div>
+
+        </div>
+
+        <div class="live">
+            <div class="live-dot">
+                <div class="live-ring"></div>
+            </div>
+
+            <span class="live-txt">
+                En línea
+            </span>
+        </div>
+
+    </div>
+
+    <!-- MENU DE ACCESOS RAPIDOS -->
+    <nav class="menu-accesos">
+    
+        <a href="admin_viviendas.html" class="acceso-card">
+            <span class="acceso-icono">🏠</span>
+            <div>
+                <strong>Viviendas</strong>
+                <p>Administrar casas y sectores</p>
+            </div>
+        </a>
+    
+        <a href="admin_vecinos.html" class="acceso-card">
+            <span class="acceso-icono">👤</span>
+            <div>
+                <strong>Vecinos</strong>
+                <p>Gestionar residentes</p>
+            </div>
+        </a>
+    
+        <a href="admin_visitantes.html" class="acceso-card">
+            <span class="acceso-icono">🪪</span>
+            <div>
+                <strong>Visitantes</strong>
+                <p>Administrar visitantes</p>
+            </div>
+        </a>
+    
+        <a href="prerregistro.html" class="acceso-card">
+            <span class="acceso-icono">🔳</span>
+            <div>
+                <strong>Prerregistro</strong>
+                <p>Generar QR de acceso</p>
+            </div>
+        </a>
+    
+    </nav>
+    
+    <!-- Tarjetas de metricas -->
+    <div class="metrics">
+    </div>
+
+    <!-- Tarjetas de metricas -->
+    <div class="metrics">
+
+        <div class="metric">
+            <div class="m-label">Visitas activas</div>
+            <div class="m-val mv-purple" id="cnt-activas">0</div>
+            <div class="m-sub">ahora mismo</div>
+        </div>
+
+        <div class="metric">
+            <div class="m-label">Ingresos hoy</div>
+            <div class="m-val mv-green" id="cnt-ingresos">0</div>
+            <div class="m-sub">total del día</div>
+        </div>
+
+        <div class="metric">
+            <div class="m-label">Salidas hoy</div>
+            <div class="m-val mv-amber" id="cnt-salidas">0</div>
+            <div class="m-sub">total del día</div>
+        </div>
+
+        <div class="metric">
+            <div class="m-label">Sin foto</div>
+            <div class="m-val mv-red" id="cnt-sinfoto">0</div>
+            <div class="m-sub">pendientes</div>
+        </div>
+
+    </div>
+
+    <!-- Barras de progreso -->
+    <div class="bar-seccion">
+
+        <div class="bar-label">
+            <span>Ocupación del turno</span>
+            <span id="pct-ocupacion">0%</span>
+        </div>
+
+        <div class="bar-track">
+            <div class="bar-fill" id="bar-ocupacion" style="--w:0%"></div>
+        </div>
+
+        <div class="bar-label">
+            <span>Visitas con vehículo</span>
+            <span id="pct-vehiculos" style="color:#BA7517">0%</span>
+        </div>
+
+        <div class="bar-track">
+            <div class="bar-fill amber" id="bar-vehiculos" style="--w:0%"></div>
+        </div>
+
+    </div>
+
+    <!-- Formulario y camara -->
+    <div class="grid2">
+
+        <!-- Nueva visita -->
+        <div class="card">
+
+            <div class="card-title">
+                Nueva visita
+            </div>
+
+            <div class="field">
+                <label>Visitante:</label>
+                <select id="visitante"></select>
+            </div>
+
+            <div class="field">
+                <label>Vecino:</label>
+                <select id="vecino"></select>
+            </div>
+
+            <div class="field">
+                <label>Placa del vehículo (opcional):</label>
+                <input type="text" id="placa" placeholder="P123ABC">
+            </div>
+
+            <button class="btn-reg" onclick="registrarVisita()">
+                + Registrar ingreso
+            </button>
+
+            <p id="mensaje"></p>
+
+        </div>
+
+        <!-- Camara -->
+        <div class="card">
+
+            <div class="card-title">
+                Captura fotográfica
+            </div>
+
+            <div class="cam-box" id="cam-box">
+
+                <svg viewBox="0 0 24 24">
+                    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                </svg>
+
+                <span id="cam-txt">
+                    Cámara inactiva
+                </span>
+
+            </div>
+
+            <video id="video" width="100%" height="160" autoplay style="display:none"></video>
+
+            <div class="btn-row">
+                <button class="btn-sm" onclick="iniciarCamara()">
+                    Encender cámara
+                </button>
+
+                <button class="btn-sm" onclick="tomarFoto()">
+                    Tomar foto
+                </button>
+            </div>
+
+            <canvas
+                id="canvas"
+                width="320"
+                height="240"
+                style="display:none; width:100%; border-radius:14px;">
+            </canvas>
+
+        </div>
+
+    </div>
+
+    <!-- Validacion de QR -->
+    <div class="card" style="margin: 0 24px 12px;">
+
+        <div class="card-title">
+            Validar código QR
+        </div>
+
+        <div class="field">
+            <label>Código QR escaneado:</label>
+
+            <input
+                type="text"
+                id="codigoQRValidar"
+                placeholder="Pegue o escanee el código QR">
+        </div>
+
+        <button class="btn-reg" onclick="validarQR()">
+            Validar QR
+        </button>
+
+        <p id="resultadoQR"></p>
+
+        <button class="btn-sm" onclick="iniciarEscanerQR()">
+            Escanear QR con cámara
+        </button>
+
+        <div id="lectorQR" style="width:300px; margin-top:15px;"></div>
+
+    </div>
+
+    <!-- Historial -->
+    <div class="hist-card">
+
+        <div class="hist-head">
+
+            <div class="card-title" style="margin-bottom:0">
+                Historial de visitas
+            </div>
+
+            <div class="search-wrap">
+
+                <svg class="search-ico" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
+                </svg>
+
+                <input
+                    type="text"
+                    id="buscador"
+                    placeholder="Buscar visitante, vecino o placa..."
+                    oninput="filtrarTabla()">
+
+            </div>
+
+        </div>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th style="width:5%">ID</th>
+                    <th style="width:20%">Visitante</th>
+                    <th style="width:20%">Vecino</th>
+                    <th style="width:10%">Placa</th>
+                    <th style="width:10%">Foto</th>
+                    <th style="width:10%">Fecha</th>
+                    <th style="width:8%">Hora</th>
+                    <th style="width:12%">Observaciones</th>
+                    <th style="width:8%">Estado</th>
+                    <th style="width:7%">Acción</th>
+                </tr>
+            </thead>
+
+            <tbody id="tablaVisitas"></tbody>
+
+        </table>
+
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast">
+        Visita registrada correctamente
+    </div>
+
+<!-- Scripts -->
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+
+<!-- Libreria para escanear QR -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<!-- Scripts propios del sistema -->
+<script src="js/camara.js"></script>
+<script src="js/qr.js"></script>
+<script src="js/visitas.js"></script>
+<script src="js/index.js"></script>
+
+</body>
+
+</html>

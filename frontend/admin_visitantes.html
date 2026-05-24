@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <!-- configuracion -->
+    <meta charset="UTF-8">
+
+    <title>Admin Visitantes</title>
+
+    <!-- estilos -->
+    <link rel="stylesheet" href="css/admin_visitantes.css">
+
+</head>
+
+<body>
+
+    <!-- contenedor -->
+    <main class="contenedor">
+
+        <!-- encabezado -->
+        <header class="encabezado">
+
+            <h1>Panel Administrativo - Visitantes</h1>
+
+            <a href="index.html" class="btn-volver">
+                Volver
+            </a>
+
+        </header>
+
+        <!-- acciones -->
+        <section class="acciones">
+
+            <input
+                type="text"
+                id="buscarVisitante"
+                placeholder="Buscar visitante..."
+            >
+
+            <button
+                type="button"
+                class="btn-nuevo"
+                onclick="abrirModalNuevo()"
+            >
+                + Nuevo visitante
+            </button>
+
+        </section>
+
+        <!-- tabla -->
+        <section class="tabla-contenedor">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombres</th>
+                        <th>Apellidos</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaVisitantes">
+                </tbody>
+
+            </table>
+
+        </section>
+
+    </main>
+
+    <!-- modal editar -->
+    <div id="modalEditar" class="modal">
+
+        <div class="modal-contenido">
+
+            <h2>Editar visitante</h2>
+
+            <form id="formEditarVisitante">
+
+                <input type="hidden" id="editIdVisitante">
+
+                <label>Nombres</label>
+                <input type="text" id="editNombres" required>
+
+                <label>Apellidos</label>
+                <input type="text" id="editApellidos" required>
+
+                <div class="modal-botones">
+
+                    <button type="submit" class="btn-guardar">
+                        Guardar
+                    </button>
+
+                    <button type="button" class="btn-cancelar" onclick="cerrarModalEditar()">
+                        Cancelar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- modal nuevo -->
+    <div id="modalNuevo" class="modal">
+
+        <div class="modal-contenido">
+
+            <h2>Nuevo visitante</h2>
+
+            <form id="formNuevoVisitante">
+
+                <label>Nombres</label>
+                <input type="text" id="nuevoNombres" required>
+
+                <label>Apellidos</label>
+                <input type="text" id="nuevoApellidos" required>
+
+                <div class="modal-botones">
+
+                    <button type="submit" class="btn-guardar">
+                        Guardar
+                    </button>
+
+                    <button type="button" class="btn-cancelar" onclick="cerrarModalNuevo()">
+                        Cancelar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+<!-- js -->
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script>
+    validarRol(["Administrador"]);
+</script>
+<script src="js/admin_visitantes.js"></script>
+</body>
+</html>

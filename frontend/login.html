@@ -1,0 +1,103 @@
+
+<!-- Pantalla de inicio de sesión
+     conectada al backend FastAPI
+-->
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <!-- CONFIGURACION GENERAL -->
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <!-- TITULO -->
+    <title>Login - Garita</title>
+
+    <!-- ESTILOS CSS -->
+    <link rel="stylesheet"
+          href="css/login.css">
+
+</head>
+
+<body>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="login-container">
+
+        <!-- CABECERA -->
+        <div class="login-header">
+
+            <h1>Garita</h1>
+
+            <p>
+                Sistema de Control de Seguridad
+            </p>
+
+        </div>
+
+        <!-- CUERPO DEL LOGIN -->
+        <div class="login-body">
+
+            <!-- FORMULARIO -->
+            <form id="loginForm">
+
+                <!-- USUARIO -->
+                <div class="input-group">
+
+                    <label>Usuario</label>
+
+                    <input
+                        type="text"
+                        id="usuario"
+                        placeholder="Ingresa tu usuario"
+                        required
+                    >
+
+                </div>
+                <!-- CONTRASEÑA -->
+
+                <div class="input-group">
+
+                    <label>Contraseña</label>
+
+                    <input
+                        type="password"
+                        id="contrasena"
+                        placeholder="Ingresa tu contraseña"
+                        required
+                    >
+
+                </div>
+
+                <!-- BOTON LOGIN -->
+
+                <button
+                    type="submit"
+                    class="btn-login"
+                >
+                    Iniciar sesión
+                </button>
+
+                <!-- MENSAJE -->
+                <div
+                    class="mensaje"
+                    id="mensaje"
+                ></div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script src="js/config.js"></script>
+    <script src="js/login.js"></script>
+
+</body>
+
+</html> 
