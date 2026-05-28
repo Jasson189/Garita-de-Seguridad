@@ -1,10 +1,10 @@
-// CRUD frontend de viviendas conectado a FastAPI
-// Esta constante apunta al backend FastAPI.
+// URL del backend desde config.js
 const API_VIVIENDAS = API;
 
 // VARIABLES GLOBALES
 let viviendas = [];
 
+// ELEMENTOS DEL HTML
 const tablaViviendas = document.getElementById("tablaViviendas");
 const txtBuscar = document.getElementById("txtBuscar");
 
@@ -24,26 +24,33 @@ const btnNuevaVivienda = document.getElementById("btnNuevaVivienda");
 const btnCerrarModal = document.getElementById("btnCerrarModal");
 const btnCancelar = document.getElementById("btnCancelar");
 
+// FUNCION PARA OBTENER TOKEN
+function obtenerTokenAdminViviendas() {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        localStorage.removeItem("usuario");
+        localStorage.removeItem("token");
+        localStorage.removeItem("rol");
+        window.location.replace("login.html");
+        return null;
+    }
+
+    return token;
+}
 
 // CARGAR VIVIENDAS AL INICIAR
 document.addEventListener("DOMContentLoaded", function () {
     cargarViviendas();
 });
 
-
-// LISTAR VIVIENDAS
+    // LISTAR VIVIENDAS
 async function cargarViviendas() {
-
-    try {
-
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-            localStorage.removeItem("usuario");
-            localStorage.removeItem("token");
-            window.location.replace("login.html");
-            return;
-        }
+   try {
+        const token = obtenerTokenAdminViviendas();
+     if (!token) {
+     return;
+    }
 
         const respuesta = await fetch(`${API_VIVIENDAS}/viviendas`, {
             headers: {
@@ -59,6 +66,7 @@ async function cargarViviendas() {
             if (respuesta.status === 401) {
                 localStorage.removeItem("usuario");
                 localStorage.removeItem("token");
+                localStorage.removeItem("rol");
                 window.location.replace("login.html");
                 return;
             }
@@ -71,24 +79,18 @@ async function cargarViviendas() {
 
         renderizarViviendas(viviendas);
 
-    } catch (error) {
-
+  } catch (error) {
         console.error("Error al cargar viviendas:", error);
         alert("Error al cargar viviendas. Revisa que el backend esté encendido.");
-
-    }
-
+  }
 }
 
-
-// RENDERIZAR TABLA
+    // RENDERIZAR TABLA
 function renderizarViviendas(lista) {
-
-    tablaViviendas.innerHTML = "";
+        tablaViviendas.innerHTML = "";
 
     if (lista.length === 0) {
-
-        tablaViviendas.innerHTML = `
+    tablaViviendas.innerHTML = `
             <tr>
                 <td colspan="7" class="sin-datos">
                     No hay viviendas registradas
@@ -99,8 +101,7 @@ function renderizarViviendas(lista) {
         return;
     }
 
-    lista.forEach(function (vivienda) {
-
+ lista.forEach(function (vivienda) {
         const fila = document.createElement("tr");
 
         const estadoTexto = vivienda.estado ? "Activa" : "Inactiva";
@@ -137,20 +138,15 @@ function renderizarViviendas(lista) {
         `;
 
         tablaViviendas.appendChild(fila);
-
-    });
-
+ });
 }
 
-
-// BUSCADOR
+    // BUSCADOR
 txtBuscar.addEventListener("input", function () {
-
-    const texto = txtBuscar.value.toLowerCase().trim();
+ const texto = txtBuscar.value.toLowerCase().trim();
 
     const filtradas = viviendas.filter(function (vivienda) {
-
-        const numero = String(vivienda.numero_vivienda || "").toLowerCase();
+       const numero = String(vivienda.numero_vivienda || "").toLowerCase();
         const sector = String(vivienda.sector || "").toLowerCase();
         const referencia = String(vivienda.direccion_referencia || "").toLowerCase();
 
@@ -158,34 +154,27 @@ txtBuscar.addEventListener("input", function () {
             numero.includes(texto) ||
             sector.includes(texto) ||
             referencia.includes(texto)
-        );
-
+       );
     });
 
-    renderizarViviendas(filtradas);
-
+renderizarViviendas(filtradas);
 });
 
-
-// ABRIR MODAL PARA CREAR
+    // ABRIR MODAL PARA CREAR
 btnNuevaVivienda.addEventListener("click", function () {
-
-    limpiarFormulario();
+limpiarFormulario();
 
     tituloModal.textContent = "Nueva vivienda";
 
     // Al crear, ocultamos estado porque se crea activa por defecto.
     grupoEstado.style.display = "none";
 
-    modalVivienda.classList.remove("oculto");
-
+ modalVivienda.classList.remove("oculto");
 });
 
-
-// ABRIR MODAL PARA EDITAR
+    // ABRIR MODAL PARA EDITAR
 function abrirModalEditar(idVivienda) {
-
-    const vivienda = viviendas.find(function (item) {
+const vivienda = viviendas.find(function (item) {
         return item.id_vivienda === idVivienda;
     });
 
@@ -205,15 +194,12 @@ function abrirModalEditar(idVivienda) {
     // Al editar, sí mostramos el estado.
     grupoEstado.style.display = "block";
 
-    modalVivienda.classList.remove("oculto");
-
+ modalVivienda.classList.remove("oculto");
 }
 
-
-// GUARDAR VIVIENDA
+    // GUARDAR VIVIENDA
 formVivienda.addEventListener("submit", async function (evento) {
-
-    evento.preventDefault();
+ evento.preventDefault();
 
     const idVivienda = inputIdVivienda.value;
 
@@ -230,32 +216,21 @@ formVivienda.addEventListener("submit", async function (evento) {
 
     // Si hay ID, se actualiza.
     // Si no hay ID, se crea.
-    if (idVivienda) {
-
+if (idVivienda) {
         datos.estado = selectEstado.value === "true";
 
-        await actualizarVivienda(idVivienda, datos);
-
-    } else {
-
-        await crearVivienda(datos);
-
-    }
-
+await actualizarVivienda(idVivienda, datos);
+} else {
+    await crearVivienda(datos);
+ }
 });
 
-
-// CREAR VIVIENDA
+//CREAR VIVIENDA
 async function crearVivienda(datos) {
+try {
+        const token = obtenerTokenAdminViviendas();
 
-    try {
-
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-            localStorage.removeItem("usuario");
-            localStorage.removeItem("token");
-            window.location.replace("login.html");
+     if (!token) {
             return;
         }
 
@@ -280,27 +255,18 @@ async function crearVivienda(datos) {
         cerrarModal();
         cargarViviendas();
 
-    } catch (error) {
-
+} catch (error) {
         console.error("Error al crear vivienda:", error);
-        alert("Error al crear vivienda");
-
-    }
-
+     alert("Error al crear vivienda");
+}
 }
 
-
-// ACTUALIZAR VIVIENDA
+    // ACTUALIZAR VIVIENDA
 async function actualizarVivienda(idVivienda, datos) {
+try {
+        const token = obtenerTokenAdminViviendas();
 
-    try {
-
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-            localStorage.removeItem("usuario");
-            localStorage.removeItem("token");
-            window.location.replace("login.html");
+    if (!token) {
             return;
         }
 
@@ -325,19 +291,15 @@ async function actualizarVivienda(idVivienda, datos) {
         cerrarModal();
         cargarViviendas();
 
-    } catch (error) {
-
+} catch (error) {
         console.error("Error al actualizar vivienda:", error);
         alert("Error al actualizar vivienda");
-
-    }
-
+ }
 }
 
-// ACTIVAR / DESACTIVAR VIVIENDA
+    // ACTIVAR / DESACTIVAR VIVIENDA
 async function cambiarEstadoVivienda(idVivienda, nuevoEstado) {
-
-    const accion = nuevoEstado ? "activar" : "desactivar";
+const accion = nuevoEstado ? "activar" : "desactivar";
 
     const confirmar = confirm(`¿Seguro que deseas ${accion} esta vivienda?`);
 
@@ -346,13 +308,9 @@ async function cambiarEstadoVivienda(idVivienda, nuevoEstado) {
     }
 
     try {
+        const token = obtenerTokenAdminViviendas();
 
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-            localStorage.removeItem("usuario");
-            localStorage.removeItem("token");
-            window.location.replace("login.html");
+    if (!token) {
             return;
         }
 
@@ -377,17 +335,13 @@ async function cambiarEstadoVivienda(idVivienda, nuevoEstado) {
 
         cargarViviendas();
 
-    } catch (error) {
-
+ } catch (error) {
         console.error("Error al cambiar estado:", error);
-        alert("Error al cambiar estado de vivienda");
-
-    }
-
+      alert("Error al cambiar estado de vivienda");
+ }
 }
 
-
-// CERRAR MODAL
+    // CERRAR MODAL
 btnCerrarModal.addEventListener("click", cerrarModal);
 btnCancelar.addEventListener("click", cerrarModal);
 
@@ -396,23 +350,19 @@ function cerrarModal() {
     limpiarFormulario();
 }
 
+    // LIMPIAR FORMULARIO
 
-// LIMPIAR FORMULARIO
 function limpiarFormulario() {
-
-    inputIdVivienda.value = "";
+inputIdVivienda.value = "";
     inputNumeroVivienda.value = "";
     inputSector.value = "";
     inputDireccionReferencia.value = "";
-    selectEstado.value = "true";
-
+ selectEstado.value = "true";
 }
 
-
-// FORMATEAR FECHA
+    // FORMATEAR FECHA
 function formatearFecha(fecha) {
-
-    if (!fecha) {
+if (!fecha) {
         return "";
     }
 
@@ -428,16 +378,12 @@ function formatearFecha(fecha) {
         day: "2-digit",
         hour: "2-digit",
         minute: "2-digit"
-    });
-
+});
 }
 
-
-// CERRAR MODAL AL DAR CLIC FUERA
+    // CERRAR MODAL AL DAR CLIC FUERA
 modalVivienda.addEventListener("click", function (evento) {
-
-    if (evento.target === modalVivienda) {
+if (evento.target === modalVivienda) {
         cerrarModal();
-    }
-
+}
 });

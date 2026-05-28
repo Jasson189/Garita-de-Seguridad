@@ -3,7 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Registro de Visitas</title>
+
     <link rel="stylesheet" href="css/index.css">
 </head>
 
@@ -54,7 +58,7 @@
 
     <!-- MENU DE ACCESOS RAPIDOS -->
     <nav class="menu-accesos">
-    
+
         <a href="admin_viviendas.html" class="acceso-card">
             <span class="acceso-icono">🏠</span>
             <div>
@@ -62,7 +66,7 @@
                 <p>Administrar casas y sectores</p>
             </div>
         </a>
-    
+
         <a href="admin_vecinos.html" class="acceso-card">
             <span class="acceso-icono">👤</span>
             <div>
@@ -70,7 +74,7 @@
                 <p>Gestionar residentes</p>
             </div>
         </a>
-    
+
         <a href="admin_visitantes.html" class="acceso-card">
             <span class="acceso-icono">🪪</span>
             <div>
@@ -78,7 +82,7 @@
                 <p>Administrar visitantes</p>
             </div>
         </a>
-    
+
         <a href="prerregistro.html" class="acceso-card">
             <span class="acceso-icono">🔳</span>
             <div>
@@ -86,12 +90,8 @@
                 <p>Generar QR de acceso</p>
             </div>
         </a>
-    
+
     </nav>
-    
-    <!-- Tarjetas de metricas -->
-    <div class="metrics">
-    </div>
 
     <!-- Tarjetas de metricas -->
     <div class="metrics">
@@ -156,18 +156,26 @@
             </div>
 
             <div class="field">
-                <label>Visitante:</label>
+                <label for="visitante">Visitante:</label>
                 <select id="visitante"></select>
             </div>
 
             <div class="field">
-                <label>Vecino:</label>
+                <label for="vecino">Vecino:</label>
                 <select id="vecino"></select>
             </div>
 
             <div class="field">
-                <label>Placa del vehículo (opcional):</label>
+                <label for="placa">Placa del vehículo (opcional):</label>
                 <input type="text" id="placa" placeholder="P123ABC">
+            </div>
+
+            <div class="field">
+                <label for="observaciones">Observaciones / motivo de visita:</label>
+                <textarea
+                    id="observaciones"
+                    rows="3"
+                    placeholder="Ejemplo: visita familiar, entrega de paquete, servicio técnico..."></textarea>
             </div>
 
             <button class="btn-reg" onclick="registrarVisita()">
@@ -229,7 +237,7 @@
         </div>
 
         <div class="field">
-            <label>Código QR escaneado:</label>
+            <label for="codigoQRValidar">Código QR escaneado:</label>
 
             <input
                 type="text"
@@ -300,23 +308,21 @@
 
     </div>
 
-    <!-- Toast -->
-    <div id="toast" class="toast">
-        Visita registrada correctamente
-    </div>
+    <!-- SCRIPTS -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
 
-<!-- Scripts -->
-<script src="js/config.js"></script>
-<script src="js/auth.js"></script>
+    <script>
+        validarRol(["Administrador", "Agente"]);
+    </script>
 
-<!-- Libreria para escanear QR -->
-<script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="js/camara.js"></script>
 
-<!-- Scripts propios del sistema -->
-<script src="js/camara.js"></script>
-<script src="js/qr.js"></script>
-<script src="js/visitas.js"></script>
-<script src="js/index.js"></script>
+    <!-- Libreria para escanear codigos QR con camara -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <script src="js/qr.js"></script>
+    <script src="js/index.js"></script>
 
 </body>
 

@@ -1,0 +1,219 @@
+    <!--Panel visual exclusivo para el rol Vecino.
+        Permite ver información personal, vivienda, código único,
+        generar prerregistros con QR, consultar historial y consultar placas.-->
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Panel Vecino - Garita de Seguridad</title>
+
+    <link rel="stylesheet" href="css/vecino_panel.css">
+</head>
+
+<body>
+
+    <!-- CONTENEDOR GENERAL -->
+    <div class="contenedor">
+
+        <!-- ENCABEZADO -->
+        <header class="encabezado">
+            <div>
+                <h1>Panel del Vecino</h1>
+                <p>Bienvenido al sistema de Garita de Seguridad</p>
+            </div>
+
+            <button id="btnCerrarSesion" class="btn-cerrar">
+                Cerrar sesión
+            </button>
+        </header>
+
+        <!-- MENSAJES -->
+        <div id="mensajeSistema" class="mensaje oculto"></div>
+
+        <!-- TARJETAS DE INFORMACION -->
+        <section class="grid-tarjetas">
+
+            <!-- INFORMACION PERSONAL -->
+            <div class="tarjeta">
+                <h2>Mi información</h2>
+
+                <p>
+                    <strong>Nombre:</strong>
+                    <span id="vecinoNombre">Cargando...</span>
+                </p>
+
+                <p>
+                    <strong>Correo:</strong>
+                    <span id="vecinoCorreo">Cargando...</span>
+                </p>
+
+                <p>
+                    <strong>Teléfono:</strong>
+                    <span id="vecinoTelefono">Cargando...</span>
+                </p>
+            </div>
+
+            <!-- CODIGO UNICO -->
+            <div class="tarjeta">
+                <h2>Código único</h2>
+
+                <div class="codigo-box">
+                    <span id="vecinoCodigo">Cargando...</span>
+                </div>
+
+                <p class="texto-ayuda">
+                    Este código identifica al vecino dentro del residencial.
+                </p>
+            </div>
+
+            <!-- VIVIENDA -->
+            <div class="tarjeta">
+                <h2>Mi vivienda</h2>
+
+                <p>
+                    <strong>No. vivienda:</strong>
+                    <span id="viviendaNumero">Cargando...</span>
+                </p>
+
+                <p>
+                    <strong>Sector:</strong>
+                    <span id="viviendaSector">Cargando...</span>
+                </p>
+
+                <p>
+                    <strong>Estado:</strong>
+                    <span id="viviendaEstado">Cargando...</span>
+                </p>
+            </div>
+
+        </section>
+
+        <!-- SECCION PRERREGISTRO -->
+        <section class="panel-seccion">
+
+            <div class="titulo-seccion">
+                <h2>Generar prerregistro de visita</h2>
+                <p>Registra una visita para generar su código QR de ingreso.</p>
+            </div>
+
+            <form id="formPrerregistro" class="formulario">
+
+                <div class="grupo-form">
+                    <label for="nombreVisitante">Nombre del visitante</label>
+                    <input type="text" id="nombreVisitante" placeholder="Ej: Carlos López" required>
+                </div>
+
+                <div class="grupo-form">
+                    <label for="dpiVisitante">DPI del visitante</label>
+                    <input type="text" id="dpiVisitante" placeholder="Ej: 1234567890101">
+                </div>
+
+                <div class="grupo-form">
+                    <label for="placaVisitante">Placa del vehículo</label>
+                    <input type="text" id="placaVisitante" placeholder="Ej: P123ABC">
+                </div>
+
+                <div class="grupo-form">
+                    <label for="motivoVisita">Motivo de visita</label>
+                    <input type="text" id="motivoVisita" placeholder="Ej: Visita familiar" required>
+                </div>
+
+                <button type="submit" class="btn-principal">
+                    Generar prerregistro
+                </button>
+
+            </form>
+
+            <!-- RESULTADO QR -->
+            <div id="resultadoQR" class="resultado-qr oculto">
+
+                <h3>Prerregistro generado</h3>
+
+                <p>
+                    <strong>Código:</strong>
+                    <span id="codigoQRGenerado">---</span>
+                </p>
+
+                <div id="contenedorImagenQR" class="qr-box">
+                    <!-- Aqui se mostrara el QR si el backend devuelve imagen -->
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- HISTORIAL DE VISITAS -->
+        <section class="panel-seccion">
+
+            <div class="titulo-seccion fila">
+                <div>
+                    <h2>Historial de visitas</h2>
+                    <p>Visitas registradas para tu vivienda.</p>
+                </div>
+
+                <button id="btnActualizarHistorial" class="btn-secundario">
+                    Actualizar
+                </button>
+            </div>
+
+            <div class="tabla-contenedor">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Visitante</th>
+                            <th>Placa</th>
+                            <th>Motivo</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tablaHistorial">
+                        <tr>
+                            <td colspan="5">Cargando historial...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </section>
+
+        <!-- CONSULTA DE PLACAS -->
+        <section class="panel-seccion">
+
+            <div class="titulo-seccion">
+                <h2>Consultar placa</h2>
+                <p>Consulta si una placa tiene relación con visitas o registros.</p>
+            </div>
+
+            <form id="formConsultarPlaca" class="formulario formulario-placa">
+
+                <div class="grupo-form">
+                    <label for="placaConsulta">Número de placa</label>
+                    <input type="text" id="placaConsulta" placeholder="Ej: P123ABC" required>
+                </div>
+
+                <button type="submit" class="btn-principal">
+                    Consultar placa
+                </button>
+
+            </form>
+
+            <div id="resultadoPlaca" class="resultado-consulta oculto">
+                <!-- Resultado de consulta -->
+            </div>
+
+        </section>
+
+    </div>
+
+    <script src="js/vecino_panel.js"></script>
+
+</body>
+
+</html>

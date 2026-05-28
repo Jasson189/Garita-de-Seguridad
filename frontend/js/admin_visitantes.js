@@ -1,261 +1,336 @@
-// tabla
-const tablaVisitantes =
-    document.getElementById("tablaVisitantes");
+// Gestión de visitantes desde panel administrador
+// Crear, listar, editar y buscar visitantes
+// Incluye DPI o licencia
 
+// VARIABLES GLOBALES
+let visitantes = [];
 
-// cargar visitantes
-async function cargarVisitantes() {
+// ELEMENTOS
+const tablaVisitantes = document.getElementById("tablaVisitantes");
+const modalEditar = document.getElementById("modalEditar");
+const modalNuevo = document.getElementById("modalNuevo");
+const inputBuscarVisitante = document.getElementById("buscarVisitante");
 
-    try {
-
+// OBTENER TOKEN
+    function obtenerTokenAdminVisitantes() {
         const token = localStorage.getItem("token");
 
         if (!token) {
             localStorage.removeItem("usuario");
             localStorage.removeItem("token");
+            localStorage.removeItem("rol");
+            localStorage.removeItem("id_usuario");
+
             window.location.replace("login.html");
-            return;
+
+            return null;
         }
 
-        // obtener datos
-        const respuesta =
-            await fetch(`${API}/visitantes`, {
+        return token;
+    }
+
+    // CARGAR VISITANTES
+    async function cargarVisitantes() {
+        try {
+            const token = obtenerTokenAdminVisitantes();
+
+            if (!token) {
+                return;
+            }
+
+            const respuesta = await fetch(`${API}/visitantes`, {
                 headers: {
                     "Authorization": "Bearer " + token
                 }
             });
 
-        const visitantes =
-            await respuesta.json();
+            const data = await respuesta.json();
 
-        if (!respuesta.ok) {
-            console.error("Error cargando visitantes:", visitantes);
+            if (!respuesta.ok) {
+                console.error("Error cargando visitantes:", data);
 
-            if (respuesta.status === 401) {
-                localStorage.removeItem("usuario");
-                localStorage.removeItem("token");
-                window.location.replace("login.html");
+                if (respuesta.status === 401) {
+                    localStorage.removeItem("usuario");
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("rol");
+                    localStorage.removeItem("id_usuario");
+
+                    window.location.replace("login.html");
+                    return;
+                }
+
+                alert(data.detail || "Error al cargar visitantes.");
                 return;
             }
 
-            alert(visitantes.detail || "Error al cargar visitantes");
-            return;
+            visitantes = data;
+
+            renderizarVisitantes(visitantes);
+
+        } catch (error) {
+            console.error("Error cargando visitantes:", error);
+            alert("Error al cargar visitantes.");
         }
+    }
 
-        // limpiar tabla
-        tablaVisitantes.innerHTML = "";
+// RENDERIZAR VISITANTES
+function renderizarVisitantes(lista) {
+    tablaVisitantes.innerHTML = "";
 
-        // recorrer visitantes
-        visitantes.forEach(visitante => {
-
-            // crear fila
-            const fila =
-                document.createElement("tr");
-
-            // contenido
-            fila.innerHTML = `
-                <td>${visitante.id_visitantes || visitante.id_visitante}</td>
-
-                <td>${visitante.nombres}</td>
-
-                <td>${visitante.apellidos}</td>
-
-                <td>
-                    <button
-                        onclick='abrirModalEditar(${JSON.stringify(visitante)})'
-                    >
-                        Editar
-                    </button>
+    if (!lista || lista.length === 0) {
+        tablaVisitantes.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align:center;">
+                    No hay visitantes registrados
                 </td>
-            `;
-
-            // agregar fila
-            tablaVisitantes.appendChild(fila);
-
-        });
-
-    }
-    catch (error) {
-
-        console.error(
-            "Error cargando visitantes:",
-            error
-        );
-
+            </tr>
+        `;
+        return;
     }
 
-}
-
-
-// iniciar
-cargarVisitantes();
-
-
-// modal editar
-const modalEditar =
-    document.getElementById("modalEditar");
-
-
-// modal nuevo
-const modalNuevo =
-    document.getElementById("modalNuevo");
-
-
-// abrir modal editar
-function abrirModalEditar(visitante) {
-
-    modalEditar.style.display = "flex";
-
-    document.getElementById("editIdVisitante").value =
-        visitante.id_visitantes || visitante.id_visitante;
-
-    document.getElementById("editNombres").value =
-        visitante.nombres;
-
-    document.getElementById("editApellidos").value =
-        visitante.apellidos;
-
-}
-
-
-// cerrar modal editar
-function cerrarModalEditar() {
-
-    modalEditar.style.display = "none";
-
-}
-
-
-// abrir modal nuevo
-function abrirModalNuevo() {
-
-    modalNuevo.style.display = "flex";
-
-}
-
-
-// cerrar modal nuevo
-function cerrarModalNuevo() {
-
-    modalNuevo.style.display = "none";
-
-}
-
-
-// guardar edicion
-document
-    .getElementById("formEditarVisitante")
-    .addEventListener("submit", async function (evento) {
-
-        evento.preventDefault();
-
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-            localStorage.removeItem("usuario");
-            localStorage.removeItem("token");
-            window.location.replace("login.html");
-            return;
-        }
+    lista.forEach(function (visitante) {
+        const fila = document.createElement("tr");
 
         const idVisitante =
-            document.getElementById("editIdVisitante").value;
+            visitante.id_visitantes ||
+            visitante.id_visitante;
 
-        const datos = {
-            nombres: document.getElementById("editNombres").value,
-            apellidos: document.getElementById("editApellidos").value
-        };
+        const dpiLicencia =
+            visitante.dpi_licencia ||
+            "Sin registro";
 
-        const respuesta = await fetch(`${API}/visitantes/${idVisitante}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
-            },
-            body: JSON.stringify(datos)
+        fila.innerHTML = `
+            <td>${idVisitante}</td>
+
+            <td>${visitante.nombres || ""}</td>
+
+            <td>${visitante.apellidos || ""}</td>
+
+            <td class="dpi-licencia">${dpiLicencia}</td>
+
+            <td>
+                <button
+                    type="button"
+                    class="btn-editar"
+                    onclick="abrirModalEditarPorId(${idVisitante})"
+                >
+                    Editar
+                </button>
+            </td>
+        `;
+
+        tablaVisitantes.appendChild(fila);
+    });
+}
+
+// BUSCAR VISITANTE
+if (inputBuscarVisitante) {
+    inputBuscarVisitante.addEventListener("input", function () {
+        const texto = inputBuscarVisitante.value.toLowerCase().trim();
+
+        const filtrados = visitantes.filter(function (visitante) {
+            const idVisitante = String(
+                visitante.id_visitantes ||
+                visitante.id_visitante ||
+                ""
+            ).toLowerCase();
+
+            const nombres = String(visitante.nombres || "").toLowerCase();
+            const apellidos = String(visitante.apellidos || "").toLowerCase();
+            const dpiLicencia = String(visitante.dpi_licencia || "").toLowerCase();
+
+            return (
+                idVisitante.includes(texto) ||
+                nombres.includes(texto) ||
+                apellidos.includes(texto) ||
+                dpiLicencia.includes(texto)
+            );
         });
 
-        const resultado = await respuesta.json();
+        renderizarVisitantes(filtrados);
+    });
+}
 
-        if (!respuesta.ok) {
-            alert(resultado.detail || "Error al actualizar visitante");
-            return;
-        }
+// ABRIR MODAL NUEVO
+function abrirModalNuevo() {
+    limpiarFormularioNuevo();
 
-        cerrarModalEditar();
+    modalNuevo.style.display = "flex";
+}
 
-        cargarVisitantes();
+// CERRAR MODAL NUEVO
+function cerrarModalNuevo() {
+    modalNuevo.style.display = "none";
+}
 
+// LIMPIAR FORMULARIO NUEVO
+function limpiarFormularioNuevo() {
+    const formNuevo = document.getElementById("formNuevoVisitante");
+
+    if (formNuevo) {
+        formNuevo.reset();
+    }
+}
+
+// ABRIR MODAL EDITAR POR ID
+function abrirModalEditarPorId(idVisitante) {
+    const visitante = visitantes.find(function (item) {
+        const id =
+            item.id_visitantes ||
+            item.id_visitante;
+
+        return Number(id) === Number(idVisitante);
     });
 
+    if (!visitante) {
+        alert("No se encontró el visitante seleccionado.");
+        return;
+    }
 
-// guardar nuevo
+    abrirModalEditar(visitante);
+}
+
+// ABRIR MODAL EDITAR
+    function abrirModalEditar(visitante) {
+        modalEditar.style.display = "flex";
+
+        document.getElementById("editIdVisitante").value =
+            visitante.id_visitantes ||
+            visitante.id_visitante;
+
+        document.getElementById("editNombres").value =
+            visitante.nombres || "";
+
+        document.getElementById("editApellidos").value =
+            visitante.apellidos || "";
+
+        document.getElementById("editDpiLicencia").value =
+            visitante.dpi_licencia || "";
+    }
+
+    // CERRAR MODAL EDITAR
+    function cerrarModalEditar() {
+        modalEditar.style.display = "none";
+    }
+
+    // GUARDAR NUEVO VISITANTE
+    document
+        .getElementById("formNuevoVisitante")
+        .addEventListener("submit", async function (evento) {
+            evento.preventDefault();
+
+            try {
+                const token = obtenerTokenAdminVisitantes();
+
+                if (!token) {
+                    return;
+                }
+
+            const datos = {
+                nombres: document.getElementById("nuevoNombres").value.trim(),
+                apellidos: document.getElementById("nuevoApellidos").value.trim(),
+                dpi_licencia: document.getElementById("nuevoDpiLicencia").value.trim() || null
+            };
+
+            if (!datos.nombres || !datos.apellidos) {
+                alert("Debe ingresar nombres y apellidos.");
+                return;
+            }
+
+            const respuesta = await fetch(`${API}/visitantes`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify(datos)
+            });
+
+            const resultado = await respuesta.json();
+
+            if (!respuesta.ok) {
+                console.error("Error creando visitante:", resultado);
+                alert(resultado.detail || "Error al crear visitante.");
+                return;
+            }
+
+            cerrarModalNuevo();
+            limpiarFormularioNuevo();
+
+            await cargarVisitantes();
+
+        } catch (error) {
+            console.error("Error creando visitante:", error);
+            alert("Error al crear visitante.");
+        }
+    });
+
+// GUARDAR EDICION DE VISITANTE
 document
-    .getElementById("formNuevoVisitante")
-    .addEventListener("submit", async function (evento) {
-
+        .getElementById("formEditarVisitante")
+         .addEventListener("submit", async function (evento) {
         evento.preventDefault();
 
-        const token = localStorage.getItem("token");
+         try {
+            const token = obtenerTokenAdminVisitantes();
 
-        if (!token) {
-            localStorage.removeItem("usuario");
-            localStorage.removeItem("token");
-            window.location.replace("login.html");
-            return;
-        }
+            if (!token) {
+                return;
+            }
 
-        const datos = {
-            nombres: document.getElementById("nuevoNombres").value,
-            apellidos: document.getElementById("nuevoApellidos").value
-        };
+            const idVisitante =
+                document.getElementById("editIdVisitante").value;
 
-        const respuesta = await fetch(`${API}/visitantes`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
-            },
-            body: JSON.stringify(datos)
-        });
+            const datos = {
+                nombres: document.getElementById("editNombres").value.trim(),
+                apellidos: document.getElementById("editApellidos").value.trim(),
+                dpi_licencia: document.getElementById("editDpiLicencia").value.trim() || null
+            };
 
-        const resultado = await respuesta.json();
+            if (!datos.nombres || !datos.apellidos) {
+                alert("Debe ingresar nombres y apellidos.");
+                return;
+            }
 
-        if (!respuesta.ok) {
-            alert(resultado.detail || "Error al crear visitante");
-            return;
-        }
+            const respuesta = await fetch(`${API}/visitantes/${idVisitante}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify(datos)
+            });
 
-        cerrarModalNuevo();
+            const resultado = await respuesta.json();
 
-        this.reset();
+            if (!respuesta.ok) {
+                console.error("Error actualizando visitante:", resultado);
+                alert(resultado.detail || "Error al actualizar visitante.");
+                return;
+            }
 
-        cargarVisitantes();
+            cerrarModalEditar();
 
+            await cargarVisitantes();
+
+        } catch (error) {
+            console.error("Error actualizando visitante:", error);
+            alert("Error al actualizar visitante.");
+         }
     });
 
+    // CERRAR MODALES AL HACER CLIC FUERA
+    window.addEventListener("click", function (evento) {
+        if (evento.target === modalNuevo) {
+            cerrarModalNuevo();
+        }
 
-// buscar visitante
-document
-    .getElementById("buscarVisitante")
-    .addEventListener("input", function () {
-
-        const texto =
-            this.value.toLowerCase();
-
-        const filas =
-            tablaVisitantes.querySelectorAll("tr");
-
-        filas.forEach(fila => {
-
-            const contenido =
-                fila.textContent.toLowerCase();
-
-            fila.style.display =
-                contenido.includes(texto)
-                    ? ""
-                    : "none";
-
-        });
-
+        if (evento.target === modalEditar) {
+            cerrarModalEditar();
+        }
     });
+
+// INICIAR
+document.addEventListener("DOMContentLoaded", function () {
+    cargarVisitantes();
+});

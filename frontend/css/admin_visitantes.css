@@ -274,3 +274,18 @@ td button:hover {
         flex-direction: column;
     }
 }
+/* Ajuste para columna DPI/Licencia */
+.dpi-licencia {
+    font-family: monospace;
+    color: #374151;
+    font-weight: 600;
+}
+
+/* Permitir desplazamiento horizontal si la tabla crece */
+.tabla-contenedor {
+    overflow-x: auto;
+}
+
+table {
+    min-width: 720px;
+}

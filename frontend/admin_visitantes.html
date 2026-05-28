@@ -2,15 +2,15 @@
 <html lang="es">
 
 <head>
-
     <!-- configuracion -->
     <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Admin Visitantes</title>
 
     <!-- estilos -->
     <link rel="stylesheet" href="css/admin_visitantes.css">
-
 </head>
 
 <body>
@@ -58,6 +58,7 @@
                         <th>ID</th>
                         <th>Nombres</th>
                         <th>Apellidos</th>
+                        <th>DPI/Licencia</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -82,11 +83,18 @@
 
                 <input type="hidden" id="editIdVisitante">
 
-                <label>Nombres</label>
+                <label for="editNombres">Nombres</label>
                 <input type="text" id="editNombres" required>
 
-                <label>Apellidos</label>
+                <label for="editApellidos">Apellidos</label>
                 <input type="text" id="editApellidos" required>
+
+                <label for="editDpiLicencia">DPI o licencia</label>
+                <input
+                    type="text"
+                    id="editDpiLicencia"
+                    placeholder="Ejemplo: 1234567890101"
+                >
 
                 <div class="modal-botones">
 
@@ -115,11 +123,18 @@
 
             <form id="formNuevoVisitante">
 
-                <label>Nombres</label>
+                <label for="nuevoNombres">Nombres</label>
                 <input type="text" id="nuevoNombres" required>
 
-                <label>Apellidos</label>
+                <label for="nuevoApellidos">Apellidos</label>
                 <input type="text" id="nuevoApellidos" required>
+
+                <label for="nuevoDpiLicencia">DPI o licencia</label>
+                <input
+                    type="text"
+                    id="nuevoDpiLicencia"
+                    placeholder="Ejemplo: 1234567890101"
+                >
 
                 <div class="modal-botones">
 
@@ -139,12 +154,16 @@
 
     </div>
 
-<!-- js -->
-<script src="js/config.js"></script>
-<script src="js/auth.js"></script>
-<script>
-    validarRol(["Administrador"]);
-</script>
-<script src="js/admin_visitantes.js"></script>
+    <!-- js -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+
+    <script>
+        validarRol(["Administrador"]);
+    </script>
+
+    <script src="js/admin_visitantes.js"></script>
+
 </body>
+
 </html>

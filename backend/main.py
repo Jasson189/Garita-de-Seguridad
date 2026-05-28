@@ -13,6 +13,8 @@ from datetime import datetime, timedelta
 import smtplib
 from email.message import EmailMessage
 from jose import jwt, JWTError
+from dotenv import load_dotenv
+load_dotenv()
 app = FastAPI()
 
 # CONFIGURACION JWT
@@ -23,7 +25,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 seguridad_bearer = HTTPBearer()
 
 # CREAR TOKEN JWT
-# =========================================
 def crear_token_acceso(datos: dict):
 
     datos_token = datos.copy()
@@ -79,6 +80,15 @@ def obtener_usuario_actual(
             status_code=401,
             detail="Token invalido o expirado"
         )
+    
+# FUNCION PARA VALIDAR ROLES
+def verificar_rol(usuario_actual: dict, roles_permitidos: list):
+
+    if usuario_actual["rol"] not in roles_permitidos:
+        raise HTTPException(
+            status_code=403,
+            detail="No tienes permisos para acceder a esta funcion"
+        )
 
 # Crear carpeta fotos si no existe
 if not os.path.exists("fotos"):
@@ -119,12 +129,13 @@ class LoginRequest(BaseModel):
 class VisitanteCreate(BaseModel):
     nombres: str
     apellidos: str
-
+    dpi_licencia: str | None = None
 
 # modelo actualizar visitante
 class VisitanteUpdate(BaseModel):
     nombres: str
     apellidos: str
+    dpi_licencia: str | None = None
 
 # MODELO PARA REGISTRAR VECINOS
 class VecinoCreate(BaseModel):
@@ -169,12 +180,19 @@ class VehiculoCreate(BaseModel):
     color: str | None = None
     modelo: str | None = None
 
-# MODELO PARA CREAR PRERREGISTRO
+# MODELO PARA PRERREGISTRO GENERAL
 class PrerregistroCreate(BaseModel):
     id_vecino: int
     nombre_visitante: str
     dpi_visitante: str | None = None
-    # Correo donde se enviará el QR
+    correo_visitante: str | None = None
+    placa: str | None = None
+    motivo_visita: str | None = None
+
+# MODELO PARA PRERREGISTRO DESDE EL PANEL DEL VECINO
+class VecinoPrerregistroCreate(BaseModel):
+    nombre_visitante: str
+    dpi_visitante: str | None = None
     correo_visitante: str | None = None
     placa: str | None = None
     motivo_visita: str | None = None
@@ -192,7 +210,7 @@ def login(datos: LoginRequest):
                 u.correo,
                 u.contrasena_hash,
                 u.estado,
-                r.nombre_rol
+                r.nombre_rol    
             FROM usuarios u
             INNER JOIN roles r ON u.id_rol = r.id_rol
             WHERE u.nombre_usuario = :nombre_usuario
@@ -250,6 +268,338 @@ def login(datos: LoginRequest):
 @app.get("/")
 def inicio():
     return {"mensaje": "API funcionando"}
+
+# RUTAS DEL PANEL VECINO
+
+# OBTENER PERFIL DEL VECINO LOGUEADO
+@app.get("/vecino/perfil")
+def obtener_perfil_vecino(
+    usuario_actual: dict = Depends(obtener_usuario_actual)
+):
+
+    verificar_rol(usuario_actual, ["Vecino"])
+
+    with engine.connect() as conexion:
+
+        vecino = conexion.execute(text("""
+            SELECT
+                id_vecino,
+                id_usuario,
+                id_vivienda,
+                nombres,
+                apellidos,
+                dpi,
+                telefono,
+                correo,
+                codigo_unico,
+                estado
+            FROM vecinos
+            WHERE id_usuario = :id_usuario
+        """), {
+            "id_usuario": int(usuario_actual["id"])
+        }).mappings().first()
+
+    if not vecino:
+        raise HTTPException(
+            status_code=404,
+            detail="No se encontro un vecino asociado a este usuario"
+        )
+
+    return {
+        "id_vecino": vecino["id_vecino"],
+        "id_usuario": vecino["id_usuario"],
+        "id_vivienda": vecino["id_vivienda"],
+        "nombres": vecino["nombres"],
+        "apellidos": vecino["apellidos"],
+        "nombre": f'{vecino["nombres"]} {vecino["apellidos"]}',
+        "dpi": vecino["dpi"],
+        "telefono": vecino["telefono"],
+        "correo": vecino["correo"],
+        "codigo_unico": vecino["codigo_unico"],
+        "estado": vecino["estado"]
+    }
+
+
+# OBTENER VIVIENDA DEL VECINO LOGUEADO
+@app.get("/vecino/vivienda")
+def obtener_vivienda_vecino(
+    usuario_actual: dict = Depends(obtener_usuario_actual)
+):
+
+    verificar_rol(usuario_actual, ["Vecino"])
+
+    with engine.connect() as conexion:
+
+        vivienda = conexion.execute(text("""
+            SELECT
+                vi.id_vivienda,
+                vi.numero_vivienda,
+                vi.sector,
+                vi.direccion_referencia,
+                vi.estado,
+                vi.fecha_registro
+            FROM vecinos v
+            INNER JOIN viviendas vi
+                ON v.id_vivienda = vi.id_vivienda
+            WHERE v.id_usuario = :id_usuario
+        """), {
+            "id_usuario": int(usuario_actual["id"])
+        }).mappings().first()
+
+    if not vivienda:
+        raise HTTPException(
+            status_code=404,
+            detail="No se encontro vivienda asociada a este vecino"
+        )
+
+    return {
+        "id_vivienda": vivienda["id_vivienda"],
+        "numero_vivienda": vivienda["numero_vivienda"],
+        "numero": vivienda["numero_vivienda"],
+        "sector": vivienda["sector"],
+        "direccion_referencia": vivienda["direccion_referencia"],
+        "estado": vivienda["estado"],
+        "fecha_registro": str(vivienda["fecha_registro"]) if vivienda["fecha_registro"] else None
+    }
+
+
+# HISTORIAL DE VISITAS DEL VECINO LOGUEADO
+@app.get("/vecino/visitas")
+def listar_visitas_vecino(
+    usuario_actual: dict = Depends(obtener_usuario_actual)
+):
+
+    verificar_rol(usuario_actual, ["Vecino"])
+
+    with engine.connect() as conexion:
+
+        vecino = conexion.execute(text("""
+            SELECT
+                id_vecino,
+                id_vivienda
+            FROM vecinos
+            WHERE id_usuario = :id_usuario
+        """), {
+            "id_usuario": int(usuario_actual["id"])
+        }).mappings().first()
+
+        if not vecino:
+            raise HTTPException(
+                status_code=404,
+                detail="No se encontro el vecino asociado al usuario"
+            )
+
+        visitas = conexion.execute(text("""
+            SELECT
+                vi.id_visita,
+                vi.placa,
+                vi.tipo_ingreso,
+                vi.estado_visita,
+                vi.observaciones,
+                vi.fecha_ingreso,
+                vi.hora_ingreso,
+                vi.fecha_salida,
+                vi.hora_salida,
+                vis.nombres,
+                vis.apellidos
+            FROM visitas vi
+            LEFT JOIN visitantes vis
+                ON vi.id_visitante = vis.id_visitantes
+            WHERE vi.id_vecino = :id_vecino
+            AND vi.id_vivienda = :id_vivienda
+            ORDER BY vi.id_visita DESC
+        """), {
+            "id_vecino": vecino["id_vecino"],
+            "id_vivienda": vecino["id_vivienda"]
+        }).mappings().all()
+
+    return [
+        {
+            "id_visita": visita["id_visita"],
+            "nombre_visitante": (
+                (visita["nombres"] or "") + " " + (visita["apellidos"] or "")
+            ).strip(),
+            "placa": visita["placa"],
+            "motivo": visita["observaciones"],
+            "tipo_ingreso": visita["tipo_ingreso"],
+            "estado": visita["estado_visita"],
+            "fecha": str(visita["fecha_ingreso"]) if visita["fecha_ingreso"] else None,
+            "hora_ingreso": str(visita["hora_ingreso"]) if visita["hora_ingreso"] else None,
+            "fecha_salida": str(visita["fecha_salida"]) if visita["fecha_salida"] else None,
+            "hora_salida": str(visita["hora_salida"]) if visita["hora_salida"] else None
+        }
+        for visita in visitas
+    ]
+
+
+# CREAR PRERREGISTRO DESDE EL PANEL DEL VECINO
+@app.post("/vecino/prerregistro")
+def crear_prerregistro_vecino(
+    datos: VecinoPrerregistroCreate,
+    usuario_actual: dict = Depends(obtener_usuario_actual)
+):
+
+    verificar_rol(usuario_actual, ["Vecino"])
+
+    with engine.connect() as conexion:
+
+        vecino = conexion.execute(text("""
+            SELECT
+                id_vecino
+            FROM vecinos
+            WHERE id_usuario = :id_usuario
+        """), {
+            "id_usuario": int(usuario_actual["id"])
+        }).mappings().first()
+
+    if not vecino:
+        raise HTTPException(
+            status_code=404,
+            detail="No se encontro el vecino asociado al usuario"
+        )
+
+    # Generar codigo unico para el QR
+    codigo_qr = str(uuid.uuid4())
+
+    with engine.begin() as conexion:
+
+        resultado = conexion.execute(text("""
+            INSERT INTO prerregistros (
+                id_vecino,
+                nombre_visitante,
+                dpi_visitante,
+                correo_visitante,
+                placa,
+                motivo,
+                fecha_visita,
+                hora_visita,
+                codigo_qr,
+                estado_qr,
+                fecha_creacion
+            )
+            VALUES (
+                :id_vecino,
+                :nombre_visitante,
+                :dpi_visitante,
+                :correo_visitante,
+                :placa,
+                :motivo,
+                CURRENT_DATE,
+                CURRENT_TIME,
+                :codigo_qr,
+                'pendiente',
+                CURRENT_TIMESTAMP
+            )
+            RETURNING id_prerregistro
+        """), {
+            "id_vecino": vecino["id_vecino"],
+            "nombre_visitante": datos.nombre_visitante,
+            "dpi_visitante": datos.dpi_visitante,
+            "correo_visitante": datos.correo_visitante,
+            "placa": datos.placa.upper() if datos.placa else None,
+            "motivo": datos.motivo_visita,
+            "codigo_qr": codigo_qr
+        }).mappings().first()
+
+    # GENERAR IMAGEN QR EN BASE64
+    import qrcode
+    import base64
+    from io import BytesIO
+
+    qr = qrcode.make(codigo_qr)
+
+    buffer = BytesIO()
+    qr.save(buffer, format="PNG")
+
+    qr_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+    # Si el vecino ingreso correo del visitante, se envia tambien por correo
+    if datos.correo_visitante:
+        enviar_correo_qr(
+            datos.correo_visitante,
+            datos.nombre_visitante,
+            codigo_qr
+        )
+
+    return {
+        "mensaje": "Prerregistro creado correctamente",
+        "id_prerregistro": resultado["id_prerregistro"],
+        "codigo_qr": codigo_qr,
+        "qr_base64": qr_base64
+    }
+
+
+# CONSULTAR PLACA DESDE EL PANEL DEL VECINO
+@app.get("/vecino/consultar-placa/{placa}")
+def consultar_placa_vecino(
+    placa: str,
+    usuario_actual: dict = Depends(obtener_usuario_actual)
+):
+
+    verificar_rol(usuario_actual, ["Vecino"])
+
+    with engine.connect() as conexion:
+
+        vecino = conexion.execute(text("""
+            SELECT
+                id_vecino,
+                id_vivienda
+            FROM vecinos
+            WHERE id_usuario = :id_usuario
+        """), {
+            "id_usuario": int(usuario_actual["id"])
+        }).mappings().first()
+
+        if not vecino:
+            raise HTTPException(
+                status_code=404,
+                detail="No se encontro el vecino asociado al usuario"
+            )
+
+        resultado = conexion.execute(text("""
+            SELECT
+                vi.id_visita,
+                vi.placa,
+                vi.estado_visita,
+                vi.observaciones,
+                vi.fecha_ingreso,
+                vis.nombres,
+                vis.apellidos,
+                viv.numero_vivienda
+            FROM visitas vi
+            LEFT JOIN visitantes vis
+                ON vi.id_visitante = vis.id_visitantes
+            INNER JOIN viviendas viv
+                ON vi.id_vivienda = viv.id_vivienda
+            WHERE UPPER(vi.placa) = UPPER(:placa)
+            AND vi.id_vecino = :id_vecino
+            AND vi.id_vivienda = :id_vivienda
+            ORDER BY vi.id_visita DESC
+            LIMIT 1
+        """), {
+            "placa": placa,
+            "id_vecino": vecino["id_vecino"],
+            "id_vivienda": vecino["id_vivienda"]
+        }).mappings().first()
+
+    if not resultado:
+        return {
+            "encontrado": False,
+            "placa": placa,
+            "mensaje": "No se encontro una visita relacionada con esta placa"
+        }
+
+    return {
+        "encontrado": True,
+        "placa": resultado["placa"],
+        "nombre_visitante": (
+            (resultado["nombres"] or "") + " " + (resultado["apellidos"] or "")
+        ).strip(),
+        "estado": resultado["estado_visita"],
+        "motivo": resultado["observaciones"],
+        "fecha": str(resultado["fecha_ingreso"]) if resultado["fecha_ingreso"] else None,
+        "numero_vivienda": resultado["numero_vivienda"]
+    }
 
 # REGISTRAR VECINOS
 # GENERA CODIGO AUTOMATICO
@@ -575,7 +925,8 @@ def listar_visitantes(
             SELECT
                 id_visitantes,
                 nombres,
-                apellidos
+                apellidos,
+                dpi_licencia
             FROM visitantes
             ORDER BY id_visitantes
         """))
@@ -598,12 +949,8 @@ def listar_visitas(
 
         return [dict(fila._mapping) for fila in resultado]
     
-# CRUD DE VIVIENDAS
-# ==========================================================
-# CRUD DE VIVIENDAS
-# ==========================================================
-
-# LISTAR VIVIENDAS
+    # CRUD DE VIVIENDAS
+    # LISTAR VIVIENDAS
 @app.get("/viviendas")
 def listar_viviendas(
     usuario_actual: dict = Depends(obtener_usuario_actual)
@@ -818,17 +1165,19 @@ def crear_visitante(
         conexion.execute(text("""
             INSERT INTO visitantes (
                 nombres,
-                apellidos
+                apellidos,
+                dpi_licencia
             )
             VALUES (
                 :nombres,
-                :apellidos
+                :apellidos,
+                :dpi_licencia
             )
         """), {
             "nombres": visitante.nombres,
-            "apellidos": visitante.apellidos
-        })
-
+            "apellidos": visitante.apellidos,
+            "dpi_licencia": visitante.dpi_licencia
+       })
     return {
         "mensaje": "Visitante creado correctamente"
     }
@@ -848,11 +1197,13 @@ def actualizar_visitante(
             UPDATE visitantes
             SET
                 nombres = :nombres,
-                apellidos = :apellidos
+                apellidos = :apellidos,
+                dpi_licencia = :dpi_licencia
             WHERE id_visitantes = :id_visitante
         """), {
             "nombres": visitante.nombres,
             "apellidos": visitante.apellidos,
+            "dpi_licencia": visitante.dpi_licencia,
             "id_visitante": id_visitante
         })
 
@@ -860,19 +1211,25 @@ def actualizar_visitante(
         "mensaje": "Visitante actualizado correctamente"
     }
 
-
 # FUNCION PARA ENVIAR CORREO CON QR
-
 def enviar_correo_qr(correo_destino, nombre_visitante, codigo_qr):
 
     import smtplib
     import qrcode
     from email.message import EmailMessage
     from io import BytesIO
-    # DATOS DEL CORREO EMISOR
 
-    correo_emisor = "garitas041@gmail.com"
-    password_app = "yjlj iafz bxny djdl"
+    # DATOS DEL CORREO EMISOR DESDE .ENV
+    correo_emisor = os.getenv("CORREO_EMISOR")
+    password_app = os.getenv("CORREO_PASSWORD_APP")
+    smtp_servidor = os.getenv("SMTP_SERVIDOR", "smtp.gmail.com")
+    smtp_puerto = int(os.getenv("SMTP_PUERTO", "465"))
+
+    if not correo_emisor or not password_app:
+        raise HTTPException(
+            status_code=500,
+            detail="No esta configurado el correo emisor del sistema"
+        )
 
     # GENERAR IMAGEN QR
     qr = qrcode.make(codigo_qr)
@@ -890,7 +1247,7 @@ def enviar_correo_qr(correo_destino, nombre_visitante, codigo_qr):
     mensaje["To"] = correo_destino
 
     mensaje.set_content(f"""
-Hola.
+Hola {nombre_visitante}.
 
 Tu prerregistro fue creado correctamente.
 
@@ -899,6 +1256,7 @@ Codigo QR:
 
 Presenta este QR en la garita.
 """)
+
     # ADJUNTAR IMAGEN QR
     mensaje.add_attachment(
         imagen_qr,
@@ -906,11 +1264,10 @@ Presenta este QR en la garita.
         subtype="png",
         filename="codigo_qr.png"
     )
+
     # ENVIAR CORREO
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-
+    with smtplib.SMTP_SSL(smtp_servidor, smtp_puerto) as smtp:
         smtp.login(correo_emisor, password_app)
-
         smtp.send_message(mensaje)
 
 # CREAR PRERREGISTRO
@@ -1073,16 +1430,19 @@ def registrar_visita_qr(codigo_qr: str):
                 INSERT INTO visitantes (
                     nombres,
                     apellidos,
-                    telefono
+                    telefono,
+                    dpi_licencia
                 )
                 VALUES (
                     :nombres,
                     '',
-                    ''
+                    '',
+                    :dpi_licencia
                 )
                 RETURNING id_visitantes
             """), {
-                "nombres": prerregistro["nombre_visitante"]
+                "nombres": prerregistro["nombre_visitante"],
+                "dpi_licencia": prerregistro["dpi_visitante"]
             }).mappings().first()
 
 

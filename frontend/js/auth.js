@@ -1,42 +1,38 @@
-// =========================================
-// AUTH.JS
-// Sistema Garita de Seguridad
-// Validacion de sesion, usuario logueado,
-// fecha/hora, cierre de sesion y roles
-// =========================================
+// Validacion de sesion, token JWT,
+// usuario logueado, fecha/hora,
+// cierre de sesion y roles
 
+// OBTENER DATOS DE SESION
+const tokenSesion = localStorage.getItem("token");
+const usuarioSesion = localStorage.getItem("usuario");
+const rolSesion = localStorage.getItem("rol");
 
-// VALIDAR SESION
-const usuarioGuardado = localStorage.getItem("usuario");
+    // LIMPIAR SESION
+function limpiarSesion() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("rol");
+    localStorage.removeItem("id_usuario");
+}
 
-let usuarioSesion = null;
+// VALIDAR SESION GENERAL
+if (!tokenSesion) {
 
-if (!usuarioGuardado) {
-
-    // Si no hay sesion, enviar al login
+    // Si no hay token, enviar al login
     window.location.replace("login.html");
 
 } else {
 
-    usuarioSesion = JSON.parse(usuarioGuardado);
-
-
-    // =========================================
-    // MOSTRAR USUARIO LOGUEADO
-    // =========================================
+// MOSTRAR USUARIO LOGUEADO
     const nombreUsuario = document.getElementById("nombreUsuario");
 
     if (nombreUsuario) {
         nombreUsuario.textContent =
-            "Usuario: " + usuarioSesion.nombre_usuario;
+            "Usuario: " + (usuarioSesion || "No identificado");
     }
 
-
-    // =========================================
-    // MOSTRAR FECHA Y HORA
-    // =========================================
-    function mostrarFecha() {
-
+ // MOSTRAR FECHA Y HORA
+ function mostrarFecha() {
         const fechaTurno = document.getElementById("fecha-turno");
 
         // Si la pagina no tiene este elemento, no hace nada
@@ -44,8 +40,7 @@ if (!usuarioGuardado) {
             return;
         }
 
-        function actualizarHora() {
-
+    function actualizarHora() {
             const ahora = new Date();
 
             fechaTurno.textContent =
@@ -56,22 +51,12 @@ if (!usuarioGuardado) {
 
         setInterval(actualizarHora, 1000);
     }
-
-
-    // =========================================
-    // CERRAR SESION
-    // =========================================
+// CERRAR SESION
     const btnCerrarSesion = document.getElementById("btnCerrarSesion");
 
-    if (btnCerrarSesion) {
-
+if (btnCerrarSesion) {
         btnCerrarSesion.addEventListener("click", function () {
-
-            // Eliminar datos de sesion
-            localStorage.removeItem("usuario");
-
-            // Preparado para cuando usemos token/JWT
-            localStorage.removeItem("token");
+            limpiarSesion();
 
             // Redirigir al login y evitar volver con atras
             window.location.replace("login.html");
@@ -83,25 +68,32 @@ if (!usuarioGuardado) {
     mostrarFecha();
 }
 
-
-// =========================================
-// VALIDAR ROL
-// =========================================
+    // VALIDAR ROL
 function validarRol(rolesPermitidos) {
 
-    // Si no hay usuario cargado, enviar al login
-    if (!usuarioSesion) {
+    // Si no hay token, enviar al login
+    if (!tokenSesion) {
         window.location.replace("login.html");
         return;
     }
 
-    // Obtener rol del usuario
-    const rolUsuario = usuarioSesion.rol;
+    // Si no hay rol, cerrar sesion por seguridad
+    if (!rolSesion) {
+        alert("No se pudo identificar el rol del usuario.");
+        limpiarSesion();
+        window.location.replace("login.html");
+        return;
+    }
 
     // Validar si el rol esta permitido
-    if (!rolesPermitidos.includes(rolUsuario)) {
+    if (!rolesPermitidos.includes(rolSesion)) {
 
         alert("No tienes permiso para acceder a esta pagina.");
+
+        if (rolSesion === "Vecino") {
+            window.location.replace("vecino_panel.html");
+            return;
+        }
 
         window.location.replace("index.html");
     }

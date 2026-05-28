@@ -1,3 +1,4 @@
+// Gestion de vecinos desde panel administrador
 // URL del backend desde config.js
 const API_VECINOS = API;
 
@@ -15,22 +16,32 @@ const modalNuevo = document.getElementById("modalNuevo");
 const selectNuevoVivienda = document.getElementById("nuevoIdVivienda");
 const selectEditVivienda = document.getElementById("editIdVivienda");
 
-// Cargar datos al iniciar
+// FUNCION PARA OBTENER TOKEN
+function obtenerTokenAdminVecinos() {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        localStorage.removeItem("usuario");
+        localStorage.removeItem("token");
+        localStorage.removeItem("rol");
+        window.location.replace("login.html");
+        return null;
+    }
+
+    return token;
+}
+// CARGAR DATOS AL INICIAR
 document.addEventListener("DOMContentLoaded", async function () {
     await cargarViviendas();
     await cargarVecinos();
 });
 
-// Cargar viviendas desde el backend
-// Cargar viviendas para el selector
+// CARGAR VIVIENDAS
 async function cargarViviendas() {
     try {
-        const token = localStorage.getItem("token");
+        const token = obtenerTokenAdminVecinos();
 
         if (!token) {
-            localStorage.removeItem("usuario");
-            localStorage.removeItem("token");
-            window.location.replace("login.html");
             return;
         }
 
@@ -48,6 +59,7 @@ async function cargarViviendas() {
             if (respuesta.status === 401) {
                 localStorage.removeItem("usuario");
                 localStorage.removeItem("token");
+                localStorage.removeItem("rol");
                 window.location.replace("login.html");
                 return;
             }
@@ -66,7 +78,7 @@ async function cargarViviendas() {
     }
 }
 
-// Llenar los select de viviendas
+// LLENAR SELECT DE VIVIENDAS
 function llenarSelectViviendas() {
     selectNuevoVivienda.innerHTML = `
         <option value="" disabled selected>Seleccione una vivienda</option>
@@ -94,7 +106,7 @@ function llenarSelectViviendas() {
     });
 }
 
-// Obtener texto bonito de vivienda
+// OBTENER TEXTO DE VIVIENDA
 function obtenerTextoVivienda(idVivienda) {
     const vivienda = viviendas.find(function (item) {
         return Number(item.id_vivienda) === Number(idVivienda);
@@ -106,17 +118,12 @@ function obtenerTextoVivienda(idVivienda) {
 
     return `${vivienda.numero_vivienda} - ${vivienda.sector || "Sin sector"}`;
 }
-
-// Cargar vecinos desde el backend
+// CARGAR VECINOS
 async function cargarVecinos() {
     try {
-        const token = localStorage.getItem("token");
+        const token = obtenerTokenAdminVecinos();
 
-        // Si no existe token, cerrar sesion y regresar al login
         if (!token) {
-            localStorage.removeItem("usuario");
-            localStorage.removeItem("token");
-            window.location.replace("login.html");
             return;
         }
 
@@ -134,6 +141,7 @@ async function cargarVecinos() {
             if (respuesta.status === 401) {
                 localStorage.removeItem("usuario");
                 localStorage.removeItem("token");
+                localStorage.removeItem("rol");
                 window.location.replace("login.html");
                 return;
             }
@@ -151,7 +159,8 @@ async function cargarVecinos() {
         alert("Error al cargar vecinos");
     }
 }
-// Mostrar vecinos en la tabla
+
+// MOSTRAR VECINOS EN TABLA
 function renderizarVecinos(lista) {
     tablaVecinos.innerHTML = "";
 
@@ -201,7 +210,7 @@ function renderizarVecinos(lista) {
     });
 }
 
-// Buscar vecinos
+// BUSCAR VECINOS
 buscarVecino.addEventListener("input", function () {
     const texto = buscarVecino.value.toLowerCase().trim();
 
@@ -224,18 +233,17 @@ buscarVecino.addEventListener("input", function () {
     renderizarVecinos(filtrados);
 });
 
-// Abrir modal nuevo
+// MODAL NUEVO
 function abrirModalNuevo() {
     limpiarFormularioNuevo();
     modalNuevo.style.display = "flex";
 }
 
-// Cerrar modal nuevo
 function cerrarModalNuevo() {
     modalNuevo.style.display = "none";
 }
 
-// Abrir modal editar
+// MODAL EDITAR
 function abrirModalEditar(vecino) {
     modalEditar.style.display = "flex";
 
@@ -249,12 +257,11 @@ function abrirModalEditar(vecino) {
     document.getElementById("editEstado").value = String(vecino.estado);
 }
 
-// Cerrar modal editar
 function cerrarModalEditar() {
     modalEditar.style.display = "none";
 }
 
-// Crear vecino
+// CREAR VECINO
 document.getElementById("formNuevoVecino").addEventListener("submit", async function (evento) {
     evento.preventDefault();
 
@@ -273,11 +280,17 @@ document.getElementById("formNuevoVecino").addEventListener("submit", async func
     }
 
     try {
+        const token = obtenerTokenAdminVecinos();
+
+        if (!token) {
+            return;
+        }
+
         const respuesta = await fetch(`${API_VECINOS}/vecinos`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": "Bearer " + localStorage.getItem("token")
+                "Authorization": "Bearer " + token
             },
             body: JSON.stringify(datos)
         });
@@ -300,7 +313,7 @@ document.getElementById("formNuevoVecino").addEventListener("submit", async func
     }
 });
 
-// Editar vecino
+// EDITAR VECINO
 document.getElementById("formEditarVecino").addEventListener("submit", async function (evento) {
     evento.preventDefault();
 
@@ -322,11 +335,17 @@ document.getElementById("formEditarVecino").addEventListener("submit", async fun
     }
 
     try {
+        const token = obtenerTokenAdminVecinos();
+
+        if (!token) {
+            return;
+        }
+
         const respuesta = await fetch(`${API_VECINOS}/vecinos/${idVecino}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": "Bearer " + localStorage.getItem("token")
+                "Authorization": "Bearer " + token
             },
             body: JSON.stringify(datos)
         });
@@ -349,7 +368,7 @@ document.getElementById("formEditarVecino").addEventListener("submit", async fun
     }
 });
 
-// Activar o desactivar vecino
+// ACTIVAR O DESACTIVAR VECINO
 async function cambiarEstadoVecino(idVecino, nuevoEstado) {
     const accion = nuevoEstado ? "activar" : "desactivar";
 
@@ -360,12 +379,18 @@ async function cambiarEstadoVecino(idVecino, nuevoEstado) {
     }
 
     try {
+        const token = obtenerTokenAdminVecinos();
+
+        if (!token) {
+            return;
+        }
+
         const respuesta = await fetch(
             `${API_VECINOS}/vecinos/${idVecino}/estado?estado=${nuevoEstado}`,
             {
                 method: "PUT",
                 headers: {
-                    "Authorization": "Bearer " + localStorage.getItem("token")
+                    "Authorization": "Bearer " + token
                 }
             }
         );
@@ -386,8 +411,7 @@ async function cambiarEstadoVecino(idVecino, nuevoEstado) {
         alert("Error al cambiar estado");
     }
 }
-
-// Limpiar formulario nuevo
+// LIMPIAR FORMULARIO NUEVO
 function limpiarFormularioNuevo() {
     document.getElementById("nuevoIdVivienda").value = "";
     document.getElementById("nuevoNombres").value = "";
