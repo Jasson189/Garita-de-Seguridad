@@ -9,6 +9,7 @@ import base64
 import os
 import time
 import uuid
+import re
 from datetime import datetime, timedelta
 import smtplib
 from email.message import EmailMessage
@@ -115,6 +116,7 @@ class VisitaCreate(BaseModel):
     id_vecino: int
     id_vivienda: int
     id_usuario_agente: int
+    codigo_unico: str
     tipo_ingreso: str
     observaciones: str | None = None
     foto: str | None = None
@@ -124,6 +126,10 @@ class VisitaCreate(BaseModel):
 class LoginRequest(BaseModel):
     nombre_usuario: str
     contrasena: str
+
+class CambioContrasenaVecino(BaseModel):
+    contrasena_actual: str
+    nueva_contrasena: str
 
 # modelo crear visitante
 class VisitanteCreate(BaseModel):
@@ -320,6 +326,7 @@ def obtener_perfil_vecino(
     }
 
 
+
 # OBTENER VIVIENDA DEL VECINO LOGUEADO
 @app.get("/vecino/vivienda")
 def obtener_vivienda_vecino(
@@ -395,6 +402,8 @@ def listar_visitas_vecino(
                 vi.placa,
                 vi.tipo_ingreso,
                 vi.estado_visita,
+                vi.estado_autorizacion_vecino,
+                vi.fecha_respuesta_vecino,
                 vi.observaciones,
                 vi.fecha_ingreso,
                 vi.hora_ingreso,
@@ -423,6 +432,8 @@ def listar_visitas_vecino(
             "motivo": visita["observaciones"],
             "tipo_ingreso": visita["tipo_ingreso"],
             "estado": visita["estado_visita"],
+            "estado_autorizacion_vecino": visita["estado_autorizacion_vecino"],
+            "fecha_respuesta_vecino": str(visita["fecha_respuesta_vecino"]) if visita["fecha_respuesta_vecino"] else None,
             "fecha": str(visita["fecha_ingreso"]) if visita["fecha_ingreso"] else None,
             "hora_ingreso": str(visita["hora_ingreso"]) if visita["hora_ingreso"] else None,
             "fecha_salida": str(visita["fecha_salida"]) if visita["fecha_salida"] else None,
@@ -431,6 +442,249 @@ def listar_visitas_vecino(
         for visita in visitas
     ]
 
+# CAMBIAR CONTRASENA DEL VECINO LOGUEADO
+@app.put("/vecino/cambiar-contrasena")
+def cambiar_contrasena_vecino(
+    datos: CambioContrasenaVecino,
+    usuario_actual: dict = Depends(obtener_usuario_actual)
+):
+
+    verificar_rol(usuario_actual, ["Vecino"])
+
+    if len(datos.nueva_contrasena.strip()) < 6:
+        raise HTTPException(
+            status_code=400,
+            detail="La nueva contraseña debe tener al menos 6 caracteres"
+        )
+
+    with engine.begin() as conexion:
+
+        usuario = conexion.execute(text("""
+            SELECT
+                id_usuarios,
+                contrasena_hash
+            FROM usuarios
+            WHERE id_usuarios = :id_usuario
+        """), {
+            "id_usuario": int(usuario_actual["id"])
+        }).mappings().first()
+
+        if not usuario:
+            raise HTTPException(
+                status_code=404,
+                detail="Usuario no encontrado"
+            )
+
+        if usuario["contrasena_hash"] != datos.contrasena_actual:
+            raise HTTPException(
+                status_code=400,
+                detail="La contraseña actual no es correcta"
+            )
+
+        conexion.execute(text("""
+            UPDATE usuarios
+            SET contrasena_hash = :nueva_contrasena,
+                debe_cambiar_contrasena = false
+            WHERE id_usuarios = :id_usuario
+        """), {
+            "nueva_contrasena": datos.nueva_contrasena,
+            "id_usuario": int(usuario_actual["id"])
+        })
+
+    return {
+        "mensaje": "Contraseña actualizada correctamente"
+    }
+
+# VISITAS PENDIENTES DE AUTORIZACION DEL VECINO
+@app.get("/vecino/visitas/pendientes")
+def listar_visitas_pendientes_vecino(
+    usuario_actual: dict = Depends(obtener_usuario_actual)
+):
+
+    verificar_rol(usuario_actual, ["Vecino"])
+
+    with engine.connect() as conexion:
+
+        vecino = conexion.execute(text("""
+            SELECT
+                id_vecino,
+                id_vivienda
+            FROM vecinos
+            WHERE id_usuario = :id_usuario
+        """), {
+            "id_usuario": int(usuario_actual["id"])
+        }).mappings().first()
+
+        if not vecino:
+            raise HTTPException(
+                status_code=404,
+                detail="No se encontro el vecino asociado al usuario"
+            )
+
+        visitas = conexion.execute(text("""
+            SELECT
+                vi.id_visita,
+                vi.placa,
+                vi.tipo_ingreso,
+                vi.estado_visita,
+                vi.estado_autorizacion_vecino,
+                vi.observaciones,
+                vi.fecha_ingreso,
+                vi.hora_ingreso,
+                vis.nombres,
+                vis.apellidos,
+                vis.dpi_licencia
+            FROM visitas vi
+            LEFT JOIN visitantes vis
+                ON vi.id_visitante = vis.id_visitantes
+            WHERE vi.id_vecino = :id_vecino
+            AND vi.id_vivienda = :id_vivienda
+            AND vi.estado_autorizacion_vecino = 'pendiente_vecino'
+            ORDER BY vi.id_visita DESC
+        """), {
+            "id_vecino": vecino["id_vecino"],
+            "id_vivienda": vecino["id_vivienda"]
+        }).mappings().all()
+
+    return [
+        {
+            "id_visita": visita["id_visita"],
+            "nombre_visitante": (
+                (visita["nombres"] or "") + " " + (visita["apellidos"] or "")
+            ).strip(),
+            "dpi_licencia": visita["dpi_licencia"],
+            "placa": visita["placa"],
+            "motivo": visita["observaciones"],
+            "tipo_ingreso": visita["tipo_ingreso"],
+            "estado_visita": visita["estado_visita"],
+            "estado_autorizacion_vecino": visita["estado_autorizacion_vecino"],
+            "fecha_ingreso": str(visita["fecha_ingreso"]) if visita["fecha_ingreso"] else None,
+            "hora_ingreso": str(visita["hora_ingreso"]) if visita["hora_ingreso"] else None
+        }
+        for visita in visitas
+    ]
+
+
+# AUTORIZAR VISITA DESDE PANEL VECINO
+@app.put("/vecino/visitas/{id_visita}/autorizar")
+def autorizar_visita_vecino(
+    id_visita: int,
+    usuario_actual: dict = Depends(obtener_usuario_actual)
+):
+
+    verificar_rol(usuario_actual, ["Vecino"])
+
+    with engine.begin() as conexion:
+
+        vecino = conexion.execute(text("""
+            SELECT
+                id_vecino,
+                id_vivienda
+            FROM vecinos
+            WHERE id_usuario = :id_usuario
+        """), {
+            "id_usuario": int(usuario_actual["id"])
+        }).mappings().first()
+
+        if not vecino:
+            raise HTTPException(
+                status_code=404,
+                detail="No se encontro el vecino asociado al usuario"
+            )
+
+        visita = conexion.execute(text("""
+            SELECT
+                id_visita
+            FROM visitas
+            WHERE id_visita = :id_visita
+            AND id_vecino = :id_vecino
+            AND id_vivienda = :id_vivienda
+            AND estado_autorizacion_vecino = 'pendiente_vecino'
+        """), {
+            "id_visita": id_visita,
+            "id_vecino": vecino["id_vecino"],
+            "id_vivienda": vecino["id_vivienda"]
+        }).mappings().first()
+
+        if not visita:
+            raise HTTPException(
+                status_code=404,
+                detail="No se encontro una visita pendiente para autorizar"
+            )
+
+        conexion.execute(text("""
+            UPDATE visitas
+            SET estado_autorizacion_vecino = 'autorizada',
+                fecha_respuesta_vecino = CURRENT_TIMESTAMP
+            WHERE id_visita = :id_visita
+        """), {
+            "id_visita": id_visita
+        })
+
+    return {
+        "mensaje": "Visita autorizada correctamente"
+    }
+
+
+# RECHAZAR VISITA DESDE PANEL VECINO
+@app.put("/vecino/visitas/{id_visita}/rechazar")
+def rechazar_visita_vecino(
+    id_visita: int,
+    usuario_actual: dict = Depends(obtener_usuario_actual)
+):
+
+    verificar_rol(usuario_actual, ["Vecino"])
+
+    with engine.begin() as conexion:
+
+        vecino = conexion.execute(text("""
+            SELECT
+                id_vecino,
+                id_vivienda
+            FROM vecinos
+            WHERE id_usuario = :id_usuario
+        """), {
+            "id_usuario": int(usuario_actual["id"])
+        }).mappings().first()
+
+        if not vecino:
+            raise HTTPException(
+                status_code=404,
+                detail="No se encontro el vecino asociado al usuario"
+            )
+
+        visita = conexion.execute(text("""
+            SELECT
+                id_visita
+            FROM visitas
+            WHERE id_visita = :id_visita
+            AND id_vecino = :id_vecino
+            AND id_vivienda = :id_vivienda
+            AND estado_autorizacion_vecino = 'pendiente_vecino'
+        """), {
+            "id_visita": id_visita,
+            "id_vecino": vecino["id_vecino"],
+            "id_vivienda": vecino["id_vivienda"]
+        }).mappings().first()
+
+        if not visita:
+            raise HTTPException(
+                status_code=404,
+                detail="No se encontro una visita pendiente para rechazar"
+            )
+
+        conexion.execute(text("""
+            UPDATE visitas
+            SET estado_autorizacion_vecino = 'rechazada',
+                fecha_respuesta_vecino = CURRENT_TIMESTAMP
+            WHERE id_visita = :id_visita
+        """), {
+            "id_visita": id_visita
+        })
+
+    return {
+        "mensaje": "Visita rechazada correctamente"
+    }
 
 # CREAR PRERREGISTRO DESDE EL PANEL DEL VECINO
 @app.post("/vecino/prerregistro")
@@ -475,7 +729,8 @@ def crear_prerregistro_vecino(
                 hora_visita,
                 codigo_qr,
                 estado_qr,
-                fecha_creacion
+                fecha_creacion,
+                fecha_vencimiento
             )
             VALUES (
                 :id_vecino,
@@ -488,9 +743,10 @@ def crear_prerregistro_vecino(
                 CURRENT_TIME,
                 :codigo_qr,
                 'pendiente',
-                CURRENT_TIMESTAMP
+                CURRENT_TIMESTAMP,
+                CURRENT_TIMESTAMP + INTERVAL '24 hours'
             )
-            RETURNING id_prerregistro
+            RETURNING id_prerregistro, fecha_vencimiento
         """), {
             "id_vecino": vecino["id_vecino"],
             "nombre_visitante": datos.nombre_visitante,
@@ -525,7 +781,8 @@ def crear_prerregistro_vecino(
         "mensaje": "Prerregistro creado correctamente",
         "id_prerregistro": resultado["id_prerregistro"],
         "codigo_qr": codigo_qr,
-        "qr_base64": qr_base64
+        "qr_base64": qr_base64,
+        "fecha_vencimiento": str(resultado["fecha_vencimiento"]) if resultado["fecha_vencimiento"] else None
     }
 
 
@@ -601,16 +858,76 @@ def consultar_placa_vecino(
         "numero_vivienda": resultado["numero_vivienda"]
     }
 
+# GENERAR NOMBRE DE USUARIO PARA VECINO
+def generar_nombre_usuario_vecino(nombres, apellidos):
+
+    primer_nombre = nombres.strip().split()[0].lower()
+    primer_apellido = apellidos.strip().split()[0].lower()
+
+    nombre_usuario = f"{primer_nombre}.{primer_apellido}"
+
+    # Dejar solo letras, numeros, punto y guion bajo
+    nombre_usuario = re.sub(r"[^a-z0-9._]", "", nombre_usuario)
+
+    return nombre_usuario
+
 # REGISTRAR VECINOS
-# GENERA CODIGO AUTOMATICO
+# GENERA CODIGO AUTOMATICO Y USUARIO PARA LOGIN
 @app.post("/vecinos")
 def crear_vecino(
     vecino: VecinoCreate,
     usuario_actual: dict = Depends(obtener_usuario_actual)
 ):
 
+    verificar_rol(usuario_actual, ["Administrador"])
+
     with engine.begin() as conexion:
-        # OBTENER ULTIMO ID DE VECINO
+
+        # VALIDAR QUE LA VIVIENDA EXISTA
+        vivienda = conexion.execute(text("""
+            SELECT id_vivienda
+            FROM viviendas
+            WHERE id_vivienda = :id_vivienda
+        """), {
+            "id_vivienda": vecino.id_vivienda
+        }).mappings().first()
+
+        if not vivienda:
+            raise HTTPException(
+                status_code=404,
+                detail="La vivienda seleccionada no existe"
+            )
+
+        # VALIDAR QUE EL CORREO NO EXISTA EN USUARIOS
+        usuario_existente = conexion.execute(text("""
+            SELECT id_usuarios
+            FROM usuarios
+            WHERE correo = :correo
+        """), {
+            "correo": vecino.correo
+        }).mappings().first()
+
+        if usuario_existente:
+            raise HTTPException(
+                status_code=400,
+                detail="Ya existe un usuario registrado con este correo"
+            )
+
+        # BUSCAR ROL VECINO
+        rol_vecino = conexion.execute(text("""
+            SELECT id_rol
+            FROM roles
+            WHERE nombre_rol = 'Vecino'
+            LIMIT 1
+        """)).mappings().first()
+
+        if not rol_vecino:
+            raise HTTPException(
+                status_code=404,
+                detail="No existe el rol Vecino en la base de datos"
+            )
+
+        # OBTENER ULTIMO ID DE VECINO PARA GENERAR CODIGO
         ultimo = conexion.execute(text("""
             SELECT MAX(id_vecino) AS ultimo_id
             FROM vecinos
@@ -623,7 +940,61 @@ def crear_vecino(
 
         codigo_unico = f"VEC-{nuevo_numero:04}"
 
-        # INSERTAR VECINO
+        # GENERAR USUARIO Y CONTRASENA TEMPORAL
+        nombre_usuario_base = generar_nombre_usuario_vecino(
+            vecino.nombres,
+            vecino.apellidos
+        )
+
+        nombre_usuario = nombre_usuario_base
+        contador = 1
+
+        while True:
+            existe_nombre = conexion.execute(text("""
+                SELECT id_usuarios
+                FROM usuarios
+                WHERE nombre_usuario = :nombre_usuario
+            """), {
+                "nombre_usuario": nombre_usuario
+            }).mappings().first()
+
+            if not existe_nombre:
+                break
+
+            contador += 1
+            nombre_usuario = f"{nombre_usuario_base}{contador}"
+
+        contrasena_temporal = f"Vecino{nuevo_numero:04}"
+
+        # CREAR USUARIO DEL VECINO
+        usuario_creado = conexion.execute(text("""
+            INSERT INTO usuarios (
+                nombre_usuario,
+                correo,
+                contrasena_hash,
+                id_rol,
+                estado,
+                debe_cambiar_contrasena
+            )
+            VALUES (
+                :nombre_usuario,
+                :correo,
+                :contrasena_hash,
+                :id_rol,
+                true,
+                true
+            )
+            RETURNING id_usuarios
+        """), {
+            "nombre_usuario": nombre_usuario,
+            "correo": vecino.correo,
+            "contrasena_hash": contrasena_temporal,
+            "id_rol": rol_vecino["id_rol"]
+        }).mappings().first()
+
+        id_usuario_creado = usuario_creado["id_usuarios"]
+
+        # INSERTAR VECINO ASOCIADO AL USUARIO CREADO
         conexion.execute(text("""
             INSERT INTO vecinos (
                 id_usuario,
@@ -648,7 +1019,7 @@ def crear_vecino(
                 true
             )
         """), {
-            "id_usuario": vecino.id_usuario,
+            "id_usuario": id_usuario_creado,
             "id_vivienda": vecino.id_vivienda,
             "nombres": vecino.nombres,
             "apellidos": vecino.apellidos,
@@ -660,7 +1031,9 @@ def crear_vecino(
 
     return {
         "mensaje": "Vecino registrado correctamente",
-        "codigo_vecino": codigo_unico
+        "codigo_vecino": codigo_unico,
+        "usuario": nombre_usuario,
+        "contrasena_temporal": contrasena_temporal
     }
 
 # OBTENER VECINO POR ID
@@ -851,35 +1224,91 @@ def crear_visita(
         with open(nombre_archivo, "wb") as f:
             f.write(base64.b64decode(imagen))
 
-    # Registrar la visita en la base de datos
     with engine.begin() as conexion:
-        conexion.execute(text("""
-            INSERT INTO visitas (
-                id_visitante,
+
+        # Validar que el codigo unico pertenezca al vecino y vivienda seleccionada
+        vecino_validado = conexion.execute(text("""
+            SELECT
                 id_vecino,
                 id_vivienda,
-                id_usuario_agente,
-                tipo_ingreso,
-                fecha_ingreso,
-                hora_ingreso,
-                estado_visita,
-                observaciones,
-                foto,
-                placa
+                nombres,
+                apellidos,
+                correo,
+                codigo_unico
+            FROM vecinos
+            WHERE codigo_unico = :codigo_unico
+              AND id_vecino = :id_vecino
+              AND id_vivienda = :id_vivienda
+              AND estado = true
+        """), {
+            "codigo_unico": visita.codigo_unico,
+            "id_vecino": visita.id_vecino,
+            "id_vivienda": visita.id_vivienda
+        }).mappings().first()
+
+        if not vecino_validado:
+            raise HTTPException(
+                status_code=400,
+                detail="El código único no pertenece al vecino o vivienda seleccionada."
             )
-            VALUES (
-                :id_visitante,
-                :id_vecino,
-                :id_vivienda,
-                :id_usuario_agente,
-                :tipo_ingreso,
-                CURRENT_DATE,
-                CURRENT_TIME,
-                'activa',
-                :observaciones,
-                :foto,
-                :placa
+
+        # Obtener datos del visitante
+        visitante_info = conexion.execute(text("""
+            SELECT
+                nombres,
+                apellidos
+            FROM visitantes
+            WHERE id_visitantes = :id_visitante
+        """), {
+            "id_visitante": visita.id_visitante
+        }).mappings().first()
+
+        if not visitante_info:
+            raise HTTPException(
+                status_code=404,
+                detail="El visitante seleccionado no existe."
             )
+
+        nombre_vecino = (
+            vecino_validado["nombres"] + " " +
+            vecino_validado["apellidos"]
+        )
+
+        nombre_visitante = (
+            visitante_info["nombres"] + " " +
+            visitante_info["apellidos"]
+        )
+
+        # Registrar la visita en la base de datos
+        conexion.execute(text("""
+                INSERT INTO visitas (
+                    id_visitante,
+                    id_vecino,
+                    id_vivienda,
+                    id_usuario_agente,
+                    tipo_ingreso,
+                    fecha_ingreso,
+                    hora_ingreso,
+                    estado_visita,
+                    observaciones,
+                    foto,
+                    placa,
+                    estado_autorizacion_vecino
+                )
+                VALUES (
+                    :id_visitante,
+                    :id_vecino,
+                    :id_vivienda,
+                    :id_usuario_agente,
+                    :tipo_ingreso,
+                    CURRENT_DATE,
+                    CURRENT_TIME,
+                    'activa',
+                    :observaciones,
+                    :foto,
+                    :placa,
+                    'pendiente_vecino'
+                )
         """), {
             "id_visitante": visita.id_visitante,
             "id_vecino": visita.id_vecino,
@@ -891,7 +1320,18 @@ def crear_visita(
             "placa": visita.placa
         })
 
-    return {"mensaje": "Visita registrada correctamente"}
+    # Enviar correo al vecino despues de registrar la visita
+    enviar_correo_visita_vecino(
+        vecino_validado["correo"],
+        nombre_vecino,
+        nombre_visitante,
+        visita.placa
+    )
+
+    return {
+        "mensaje": "Visita registrada correctamente. Se notificó al vecino por correo."
+    }
+
 # listar vecinos
 @app.get("/vecinos")
 def listar_vecinos(usuario_actual: dict = Depends(obtener_usuario_actual)):
@@ -1211,6 +1651,49 @@ def actualizar_visitante(
         "mensaje": "Visitante actualizado correctamente"
     }
 
+# FUNCION PARA ENVIAR CORREO AL VECINO CUANDO LLEGA VISITA NORMAL
+def enviar_correo_visita_vecino(correo_destino, nombre_vecino, nombre_visitante, placa=None):
+    try:
+        if not correo_destino:
+            return
+
+        correo_emisor = os.getenv("CORREO_EMISOR")
+        password_app = os.getenv("CORREO_PASSWORD_APP")
+        smtp_servidor = os.getenv("SMTP_SERVIDOR", "smtp.gmail.com")
+        smtp_puerto = int(os.getenv("SMTP_PUERTO", "465"))
+
+        if not correo_emisor or not password_app:
+            print("Correo no configurado. No se envio notificacion al vecino.")
+            return
+
+        placa_texto = placa if placa else "Sin placa registrada"
+
+        mensaje = EmailMessage()
+
+        mensaje["Subject"] = "Nueva visita en garita"
+        mensaje["From"] = correo_emisor
+        mensaje["To"] = correo_destino
+
+        mensaje.set_content(f"""
+Hola {nombre_vecino},
+
+Se ha registrado una nueva visita en la garita.
+
+Visitante: {nombre_visitante}
+Placa: {placa_texto}
+
+Por favor, verificar si autoriza el ingreso.
+
+Sistema Garita de Seguridad
+""")
+
+        with smtplib.SMTP_SSL(smtp_servidor, smtp_puerto) as servidor:
+            servidor.login(correo_emisor, password_app)
+            servidor.send_message(mensaje)
+
+    except Exception as error:
+        print("Error al enviar correo al vecino:", error)
+
 # FUNCION PARA ENVIAR CORREO CON QR
 def enviar_correo_qr(correo_destino, nombre_visitante, codigo_qr):
 
@@ -1349,6 +1832,7 @@ def crear_prerregistro(datos: PrerregistroCreate):
 # Busca el código QR y verifica si está pendiente
 # NO lo marca como usado aquí
 
+# VALIDAR QR EN GARITA
 @app.get("/validar_qr/{codigo_qr}")
 def validar_qr(codigo_qr: str):
 
@@ -1366,7 +1850,7 @@ def validar_qr(codigo_qr: str):
         if not prerregistro:
             raise HTTPException(
                 status_code=404,
-                detail="QR inválido o no encontrado"
+                detail="QR invalido o no encontrado"
             )
 
         # SI YA FUE UTILIZADO
@@ -1376,13 +1860,22 @@ def validar_qr(codigo_qr: str):
                 detail="Este QR ya fue utilizado"
             )
 
+        # SI EL QR YA VENCIO
+        if prerregistro["fecha_vencimiento"] and prerregistro["fecha_vencimiento"] < datetime.now():
+            raise HTTPException(
+                status_code=400,
+                detail="Este QR ya vencio"
+            )
+
         # RESPUESTA CORRECTA
         return {
             "mensaje": "Acceso autorizado",
             "nombre_visitante": prerregistro["nombre_visitante"],
             "placa": prerregistro["placa"],
-            "motivo": prerregistro["motivo"]
+            "motivo": prerregistro["motivo"],
+            "fecha_vencimiento": str(prerregistro["fecha_vencimiento"]) if prerregistro["fecha_vencimiento"] else None
         }
+    
 # REGISTRAR VISITA AUTOMATICA DESDE QR
 @app.post("/registrar_visita_qr/{codigo_qr}")
 def registrar_visita_qr(codigo_qr: str):
@@ -1412,6 +1905,11 @@ def registrar_visita_qr(codigo_qr: str):
             raise HTTPException(
                 status_code=400,
                 detail="Este QR ya fue utilizado"
+            )
+        if prerregistro["fecha_vencimiento"] and prerregistro["fecha_vencimiento"] < datetime.now():
+            raise HTTPException(
+                status_code=400,
+                detail="Este QR ya vencio"
             )
 
         # Buscar si el visitante ya existe para no duplicarlo
@@ -1459,7 +1957,9 @@ def registrar_visita_qr(codigo_qr: str):
                 estado_visita,
                 observaciones,
                 foto,
-                placa
+                placa,
+                estado_autorizacion_vecino,
+                fecha_respuesta_vecino
             )
             VALUES (
                 :id_visitante,
@@ -1472,7 +1972,9 @@ def registrar_visita_qr(codigo_qr: str):
                 'activa',
                 :observaciones,
                 NULL,
-                :placa
+                :placa,
+                'autorizada',
+                NOW()
             )
         """), {
             "id_visitante": visitante["id_visitantes"],

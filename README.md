@@ -15,7 +15,7 @@ Incluye autenticación con JWT, protección de rutas privadas y validación de a
 - PostgreSQL
 - SQLAlchemy
 - HTML
-- CSS
+- CSSs
 - JavaScript
 - JWT
 - Swagger UI

@@ -302,7 +302,14 @@ document.getElementById("formNuevoVecino").addEventListener("submit", async func
             return;
         }
 
-        alert(resultado.mensaje || "Vecino creado correctamente");
+        alert(
+            `${resultado.mensaje || "Vecino creado correctamente"}\n\n` +
+            `Credenciales temporales del vecino:\n` +
+            `Usuario: ${resultado.usuario || "No generado"}\n` +
+            `Contraseña temporal: ${resultado.contrasena_temporal || "No generada"}\n` +
+            `Código vecino: ${resultado.codigo_vecino || "No generado"}\n\n` +
+            `Indícale al vecino que debe ingresar con estos datos.`
+        );
 
         cerrarModalNuevo();
         await cargarVecinos();
